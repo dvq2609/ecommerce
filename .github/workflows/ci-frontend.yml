@@ -1,0 +1,49 @@
+name: Frontend CI (React)
+
+on:
+  push:
+    paths:
+      - 'Frontend/**'
+      - '.github/workflows/ci-frontend.yml'
+    branches-ignore:
+      - 'main' # CD workflow will handle main
+  pull_request:
+    paths:
+      - 'Frontend/**'
+      - '.github/workflows/ci-frontend.yml'
+    branches:
+      - main
+      - develop
+
+jobs:
+  build-and-lint:
+    name: Lint & Build Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Frontend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Linter / Type Check
+        run: npm run build # Vite React-ts chạy 'tsc -b && vite build' để type-check & build
+
+      - name: Run Tests (if configured)
+        run: |
+          if npm run | grep -q "test"; then
+            npm test -- --passWithNoTests
+          else
+            echo "No test script found, skipping test step."
+          fi

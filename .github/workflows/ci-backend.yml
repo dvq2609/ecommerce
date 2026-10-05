@@ -1,0 +1,45 @@
+name: Backend CI (.NET)
+
+on:
+  push:
+    paths:
+      - 'Backend/**'
+      - '.github/workflows/ci-backend.yml'
+    branches-ignore:
+      - 'main' # CD workflow will handle main
+  pull_request:
+    paths:
+      - 'Backend/**'
+      - '.github/workflows/ci-backend.yml'
+    branches:
+      - main
+      - develop
+
+jobs:
+  build-and-test:
+    name: Build & Test Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore Backend/Backend/Backend.csproj
+
+      - name: Build Project
+        run: dotnet build Backend/Backend/Backend.csproj --configuration Release --no-restore
+
+      - name: Run Tests
+        # Sẽ chạy test khi có project unit test được thêm vào
+        run: |
+          if ls Backend/*Tests*/*.csproj 1> /dev/null 2>&1; then
+            dotnet test Backend --configuration Release --no-build --verbosity normal
+          else
+            echo "No test projects found yet, skipping test step."
+          fi

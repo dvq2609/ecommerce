@@ -23,6 +23,7 @@ namespace Backend.Models
         [MaxLength(100)]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
+        public string? Address { get; set; } = string.Empty;
 
         [Phone]
         public string? PhoneNumber { get; set; }
@@ -31,7 +32,7 @@ namespace Backend.Models
 
         public bool Status { get; set; } = true;
 
-        public bool IsLocked { get; set; }
+        public bool IsLocked { get; set; } = false;
 
         [MaxLength(500)]
         public string? LockReason { get; set; }
@@ -52,7 +53,12 @@ namespace Backend.Models
         [MaxLength(256)]
         public string? ImageUrl { get; set; }
 
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime? UpdatedAt { get; set; }
+
         // Navigation property
         public virtual Role Role { get; set; } = null!;
+        public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }

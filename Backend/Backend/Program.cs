@@ -1,5 +1,4 @@
 using System.Text;
-using dotenv.net;
 using Backend.Models;
 using Backend.Repositories.UserRepo;
 using Backend.Repositories.CategoryRepo;
@@ -17,7 +16,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
-DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
+// 0. Load .env file (Giống phong cách AI-SPEIS)
+LoadEnvFile();
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -47,21 +47,14 @@ builder.Services.AddScoped<IProductService, ProductService>();
 
 // 4. Configure Authentication (JWT + Google OAuth 2.0)
 var jwtKey = builder.Configuration["Jwt:Key"] 
-    ?? builder.Configuration["JWT_KEY"]
     ?? throw new InvalidOperationException("Jwt:Key is missing in configuration.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "EcommerceBackend";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "EcommerceFrontend";
 
-var googleClientId = builder.Configuration["Authentication:Google:ClientId"]
-                     ?? builder.Configuration["Google:ClientId"]
-                     ?? builder.Configuration["GOOGLE_CLIENT_ID"]
-                     ?? "";
-var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]
-                         ?? builder.Configuration["Google:ClientSecret"]
-                         ?? builder.Configuration["GOOGLE_CLIENT_SECRET"]
-                         ?? "";
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 
-builder.Services.AddAuthentication(options =>
+var authBuilder = builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -70,15 +63,25 @@ builder.Services.AddAuthentication(options =>
 {
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-})
-.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+});
+
+// Chỉ đăng ký Google Handler nếu ClientId & Secret đã được cấu hình hợp lệ
+if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
 {
-    options.SignInScheme = "External";
-    options.ClientId = googleClientId;
-    options.ClientSecret = googleClientSecret;
-    options.CallbackPath = "/api/auth/oauth/google/callback";
-})
-.AddJwtBearer(options =>
+    authBuilder.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+    {
+        options.SignInScheme = "External";
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+        options.CallbackPath = "/api/auth/oauth/google/callback";
+    });
+}
+else
+{
+    Console.WriteLine("⚠️ Google OAuth ClientId/Secret chưa cấu hình hoặc rỗng. Google Login tạm thời vô hiệu hóa.");
+}
+
+authBuilder.AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -100,7 +103,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://localhost:5173", "http://localhost:3000")
+        var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
+        policy.WithOrigins(frontendUrl, "http://localhost:3000")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -156,3 +160,58 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// ==============================================================================
+// Helper Methods for Loading .env (Đồng bộ chuẩn AI-SPEIS)
+// ==============================================================================
+static void LoadEnvFile()
+{
+    var envPath = FindEnvFile();
+    if (envPath is null)
+    {
+        return;
+    }
+
+    foreach (var rawLine in File.ReadAllLines(envPath))
+    {
+        var line = rawLine.Trim();
+        if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#'))
+        {
+            continue;
+        }
+
+        var equalsIndex = line.IndexOf('=');
+        if (equalsIndex <= 0)
+        {
+            continue;
+        }
+
+        var key = line[..equalsIndex].Trim();
+        var value = line[(equalsIndex + 1)..].Trim().Trim('"');
+
+        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(key)))
+        {
+            Environment.SetEnvironmentVariable(key, value);
+        }
+    }
+}
+
+static string? FindEnvFile()
+{
+    foreach (var startPath in new[] { Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
+    {
+        var directory = new DirectoryInfo(startPath);
+        while (directory is not null)
+        {
+            var envPath = Path.Combine(directory.FullName, ".env");
+            if (File.Exists(envPath))
+            {
+                return envPath;
+            }
+
+            directory = directory.Parent;
+        }
+    }
+
+    return null;
+}

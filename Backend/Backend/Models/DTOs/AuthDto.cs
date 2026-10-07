@@ -54,12 +54,6 @@ namespace Backend.Models.DTOs
         public string? ImageUrl { get; set; }
     }
 
-    public class GoogleLoginDto
-    {
-        [Required(ErrorMessage = "Google ID Token là bắt buộc.")]
-        public string IdToken { get; set; } = null!;
-    }
-
     public class RefreshTokenRequestDto
     {
         [Required(ErrorMessage = "RefreshToken là bắt buộc.")]

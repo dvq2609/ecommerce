@@ -164,32 +164,16 @@ namespace Backend.Services.UserService
             return (true, "Đăng nhập thành công.", response);
         }
 
-        public async Task<(bool Success, string Message, LoginResponseDto? Data)> GoogleLoginAsync(
-            GoogleLoginDto request, 
+
+        public async Task<(bool Success, string Message, LoginResponseDto? Data)> ProcessGoogleUserAsync(
+            string email, 
+            string? fullName, 
+            string? picture, 
             string? ipAddress, 
             CancellationToken cancellationToken = default)
         {
-            GoogleJsonWebSignature.Payload payload;
-            try
-            {
-                var googleClientId = _configuration["Google:ClientId"];
-                var settings = new GoogleJsonWebSignature.ValidationSettings
-                {
-                    Audience = !string.IsNullOrWhiteSpace(googleClientId) && !googleClientId.Contains("your-google-client-id")
-                        ? new[] { googleClientId }
-                        : null
-                };
-
-                payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, settings);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Xác thực Google ID Token thất bại.");
-                return (false, "Google Token không hợp lệ hoặc đã hết hạn.", null);
-            }
-
-            var email = payload.Email.ToLowerInvariant();
-            var user = await _userRepository.GetUserByEmailAsync(email, cancellationToken);
+            var normalizedEmail = email.ToLowerInvariant().Trim();
+            var user = await _userRepository.GetUserByEmailAsync(normalizedEmail, cancellationToken);
 
             if (user == null)
             {
@@ -198,9 +182,9 @@ namespace Backend.Services.UserService
                 user = new User
                 {
                     RoleId = buyerRole?.RoleId ?? 2,
-                    FullName = payload.Name ?? "Google User",
-                    Email = email,
-                    ImageUrl = payload.Picture ?? "/AvatarImage/avt_default.jpg",
+                    FullName = !string.IsNullOrWhiteSpace(fullName) ? fullName : "Google User",
+                    Email = normalizedEmail,
+                    ImageUrl = picture ?? "/AvatarImage/avt_default.jpg",
                     EmailConfirmedAt = DateTime.UtcNow,
                     Status = true,
                     IsLocked = false

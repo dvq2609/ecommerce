@@ -5,12 +5,15 @@ import { RegisterPage } from './pages/RegisterPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { VerifyNoticePage } from './pages/VerifyNoticePage';
 import { HomePage } from './pages/HomePage';
+import { ProductDetailPage } from './pages/ProductDetailPage';
 
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/product/:id" element={<ProductDetailPage />} />
+        <Route path="/product" element={<ProductDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -21,5 +24,6 @@ export const App: React.FC = () => {
     </BrowserRouter>
   );
 };
+
 
 export default App;

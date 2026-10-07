@@ -1,4 +1,6 @@
 import { MAIN_CATALOG_PRODUCTS, type ProductCatalogItem } from './mockHomeData';
+import { getProductDetailFallback } from './productDetailData';
+import type { ProductDetailData } from '../types/productDetail';
 
 export interface ProductQuery {
   page?: number;
@@ -95,4 +97,51 @@ export const productService = {
       pageSize: query.pageSize || 12,
     };
   },
+
+  /**
+   * Lấy chi tiết sản phẩm theo ID hoặc Slug, có fallback tự động nếu backend offline
+   */
+  async getProductDetail(idOrSlug: string): Promise<ProductDetailData> {
+    const isNumericId = /^\d+$/.test(idOrSlug);
+    const endpoint = isNumericId ? `/api/product/${idOrSlug}` : `/api/product/slug/${encodeURIComponent(idOrSlug)}`;
+
+    try {
+      const response = await fetch(endpoint);
+      if (response.ok) {
+        const json = await response.json();
+        if (json && json.success && json.data) {
+          const d = json.data;
+          const fallback = getProductDetailFallback(idOrSlug);
+          const images =
+            d.images && d.images.length > 0
+              ? d.images.map((img: any) => img.imageUrl)
+              : fallback.images;
+
+          const price = Number(d.price) || fallback.price;
+          const originalPrice = Math.round(price * 1.25);
+          const discountPercent = 20;
+
+          return {
+            ...fallback,
+            id: d.productId?.toString() || idOrSlug,
+            sku: `VIBE-${d.productId || 'SKU'}`,
+            title: d.productName || fallback.title,
+            brandTag: d.brandName || fallback.brandTag,
+            price,
+            originalPrice,
+            discountPercent,
+            savingsAmount: originalPrice - price,
+            stockQuantity: d.stockQuantity ?? fallback.stockQuantity,
+            descriptionText: d.productDescription || fallback.descriptionText,
+            images,
+          };
+        }
+      }
+    } catch {
+      // Backend offline -> fallback
+    }
+
+    return getProductDetailFallback(idOrSlug);
+  },
 };
+

@@ -18,10 +18,12 @@ namespace Backend.Services.EmailService
         {
             var smtpHost = _configuration["Email:SmtpHost"] ?? "smtp.gmail.com";
             var smtpPort = int.Parse(_configuration["Email:SmtpPort"] ?? "587");
-            var username = _configuration["Email:Username"] ?? _configuration["EMAIL_USERNAME"];
-            var password = (_configuration["Email:Password"] ?? _configuration["EMAIL_PASSWORD"])?.Replace(" ", ""); // Loại bỏ khoảng trắng nếu copy từ Google
-            var fromEmail = _configuration["Email:FromEmail"] ?? _configuration["EMAIL_FROM"] ?? username ?? "noreply@ecommerce.com";
-            var fromName = _configuration["Email:FromName"] ?? "Ecommerce Store";
+            var username = _configuration["Email:Username"];
+            var password = _configuration["Email:Password"]?.Replace(" ", "");
+            var fromEmail = _configuration["Email:FromEmail"] ?? username ?? "noreply@ecommerce.com";
+            var fromName = _configuration["Email:FromName"] ?? "ShopVibe Store";
+
+
 
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {

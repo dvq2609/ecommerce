@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { productService } from '../services/productService';
 import { categoryService } from '../services/categoryService';
@@ -22,6 +23,7 @@ import {
 } from '../services/mockHomeData';
 
 export const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState('cat-all');
@@ -145,7 +147,7 @@ export const HomePage: React.FC = () => {
         {/* 7. Flash Sale Section */}
         <FlashSaleSection
           products={FLASH_SALE_PRODUCTS}
-          onProductClick={(p) => alert(`Xem chi tiết sản phẩm Flash Sale: ${p.title}`)}
+          onProductClick={(p) => navigate(`/product/${p.id}`)}
           onViewAll={() => alert('Chuyển đến trang tổng hợp Flash Sale')}
         />
 
@@ -168,7 +170,7 @@ export const HomePage: React.FC = () => {
         ) : (
           <ProductCatalogSection
             initialProducts={catalogProducts}
-            onProductClick={(p) => alert(`Xem chi tiết sản phẩm: ${p.title}`)}
+            onProductClick={(p) => navigate(`/product/${p.id}`)}
           />
         )}
       </main>

@@ -46,9 +46,34 @@ namespace Backend.Models
         [Required]
         public DateTime ImportDate { get; set; }
 
+        // Fashion & Material specifications
+        [MaxLength(200)]
+        public string Material { get; set; } = string.Empty;
+
+        [MaxLength(200)]
+        public string Origin { get; set; } = string.Empty;
+
+        [MaxLength(200)]
+        public string Style { get; set; } = string.Empty;
+
+        [MaxLength(200)]
+        public string Fit { get; set; } = string.Empty;
+
+        [MaxLength(300)]
+        public string CareInstructions { get; set; } = string.Empty;
+
+        [Range(0, 5)]
+        [Column(TypeName = "decimal(3,2)")]
+        public decimal AverageRating { get; set; } = 5.0m;
+
+        [Range(0, int.MaxValue)]
+        public int RatingCount { get; set; } = 0;
+
         // Navigation properties
         public virtual Category Category { get; set; } = null!;
         public virtual Brand Brand { get; set; } = null!;
         public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
+        public virtual ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
+        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }

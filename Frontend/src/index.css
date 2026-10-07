@@ -14,8 +14,18 @@
   --color-surface-bg: #fcf9f8;
   --color-surface-card: #ffffff;
   --color-surface-container: #f0eded;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-container-high: #eae7e7;
+  --color-surface-container-highest: #e5e2e1;
+  --color-surface-container-lowest: #ffffff;
   --color-surface-input: #f6f3f2;
   --color-border-subtle: #e5e2e1;
+  --color-outline: #906f70;
+  --color-outline-variant: #e5bdbe;
+  
+  --color-primary-fixed: #ffdada;
+  --color-primary-fixed-dim: #ffb2b6;
+  --color-on-primary-fixed: #40000d;
   
   --color-error: #ba1a1a;
   --color-error-bg: #ffdad6;
@@ -26,15 +36,19 @@
   /* Typography */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Spacing */
+  /* Spacing & Radius */
+  --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
   --radius-full: 9999px;
 
   --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.15), 0 4px 10px -2px rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-soft: 0 1px 8px rgba(0, 0, 0, 0.04);
+  --shadow-bottom-nav: 0 -2px 12px rgba(0, 0, 0, 0.05);
 }
 
 *, *::before, *::after {
@@ -498,4 +512,43 @@ button {
   background-color: var(--color-success-bg);
   color: var(--color-success);
   border: 1px solid #a2ebd8;
+}
+
+/* ==========================================================================
+   Material Symbols & Mobile Utilities
+   ========================================================================== */
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Custom scrollbar hiding for horizontal carousels */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

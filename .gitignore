@@ -33,3 +33,4 @@ Thumbs.db
 *.md
 *.json
 .env
+*.txt

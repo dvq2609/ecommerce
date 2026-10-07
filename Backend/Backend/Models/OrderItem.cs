@@ -7,6 +7,7 @@ namespace Backend.Models
     [Table("OrderItems")]
     [Index(nameof(OrderItemId), Name = "IX_OrderItems_OrderItemId", IsUnique = true)]
     [Index(nameof(OrderId), Name = "IX_OrderItems_OrderId")]
+    [Index(nameof(ProductVariantId), Name = "IX_OrderItems_ProductVariantId")]
     public class OrderItem
     {
         [Key]
@@ -21,9 +22,15 @@ namespace Backend.Models
         [ForeignKey("Product")]
         public int ProductId { get; set; }
 
+        [ForeignKey("ProductVariant")]
+        public int? ProductVariantId { get; set; }
+
         [Required]
         [MaxLength(100)]
         public string ProductName { get; set; } = string.Empty;
+
+        [MaxLength(150)]
+        public string? VariantInfo { get; set; } // Snapshot phân loại hàng khi mua: "Kem Vintage • Size S"
 
         [MaxLength(500)]
         public string? ProductImageUrl { get; set; }
@@ -43,5 +50,6 @@ namespace Backend.Models
         // Navigation properties
         public virtual Order Order { get; set; } = null!;
         public virtual Product Product { get; set; } = null!;
+        public virtual ProductVariant? ProductVariant { get; set; }
     }
 }

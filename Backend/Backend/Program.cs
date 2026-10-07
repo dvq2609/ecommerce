@@ -1,4 +1,5 @@
 using System.Text;
+using dotenv.net;
 using Backend.Models;
 using Backend.Repositories.UserRepo;
 using Backend.Repositories.CategoryRepo;
@@ -10,12 +11,16 @@ using Backend.Services.UserService;
 using Backend.Services.CategoryService;
 using Backend.Services.BrandService;
 using Backend.Services.ProductService;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
+DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
 
 // 1. Add Controllers
 builder.Services.AddControllers();
@@ -40,17 +45,38 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
-// 4. Configure JWT Authentication
+// 4. Configure Authentication (JWT + Google OAuth 2.0)
 var jwtKey = builder.Configuration["Jwt:Key"] 
     ?? builder.Configuration["JWT_KEY"]
     ?? throw new InvalidOperationException("Jwt:Key is missing in configuration.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "EcommerceBackend";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "EcommerceFrontend";
 
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"]
+                     ?? builder.Configuration["Google:ClientId"]
+                     ?? builder.Configuration["GOOGLE_CLIENT_ID"]
+                     ?? "";
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]
+                         ?? builder.Configuration["Google:ClientSecret"]
+                         ?? builder.Configuration["GOOGLE_CLIENT_SECRET"]
+                         ?? "";
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddCookie("External", options =>
+{
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+})
+.AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+{
+    options.SignInScheme = "External";
+    options.ClientId = googleClientId;
+    options.ClientSecret = googleClientSecret;
+    options.CallbackPath = "/api/auth/oauth/google/callback";
 })
 .AddJwtBearer(options =>
 {

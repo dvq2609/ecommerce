@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Backend.Models.DTOs;
 using Backend.Services.UserService;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +13,12 @@ namespace Backend.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(IUserService userService)
+        public AuthController(IUserService userService, IConfiguration configuration)
         {
             _userService = userService;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -96,24 +100,57 @@ namespace Backend.Controllers
         }
 
         /// <summary>
-        /// Đăng nhập 1 chạm bằng Google OAuth (Google ID Token)
+        /// Khởi tạo đăng nhập Google OAuth 2.0 (Server Redirect Flow chuẩn ASP.NET Core)
         /// </summary>
-        [HttpPost("google-login")]
-        [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto request, CancellationToken cancellationToken)
+        [HttpGet("oauth/google")]
+        public IActionResult GoogleOAuthRedirect()
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var ipAddress = GetIpAddress();
-            var result = await _userService.GoogleLoginAsync(request, ipAddress, cancellationToken);
-            if (!result.Success)
+            var properties = new AuthenticationProperties
             {
-                return BadRequest(new { message = result.Message });
+                RedirectUri = Url.Action(nameof(GoogleOAuthCallbackComplete)) ?? "/api/auth/oauth/google/complete"
+            };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        /// <summary>
+        /// Callback sau khi Google xác thực thành công, tạo JWT và chuyển hướng về Frontend
+        /// </summary>
+        [HttpGet("oauth/google/complete")]
+        public async Task<IActionResult> GoogleOAuthCallbackComplete()
+        {
+            var result = await HttpContext.AuthenticateAsync("External");
+            var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
+
+            if (!result.Succeeded || result.Principal == null)
+            {
+                return Redirect($"{frontendUrl}/login?error={Uri.EscapeDataString("Xác thực Google thất bại.")}");
             }
 
-            return Ok(result.Data);
+            var email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
+            var fullName = result.Principal.FindFirst(ClaimTypes.Name)?.Value;
+            var picture = result.Principal.FindFirst("picture")?.Value 
+                          ?? result.Principal.FindFirst("image")?.Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return Redirect($"{frontendUrl}/login?error={Uri.EscapeDataString("Không tìm thấy thông tin email từ tài khoản Google.")}");
+            }
+
+            var ipAddress = GetIpAddress();
+            var authResult = await _userService.ProcessGoogleUserAsync(email, fullName ?? "Google User", picture, ipAddress, HttpContext.RequestAborted);
+            await HttpContext.SignOutAsync("External");
+
+            if (!authResult.Success || authResult.Data == null)
+            {
+                return Redirect($"{frontendUrl}/login?error={Uri.EscapeDataString(authResult.Message)}");
+            }
+
+            // Chuyển hướng về Frontend kèm Tokens trên hash URL (giống luồng AI-SPEIS)
+            var redirectUrl = $"{frontendUrl}/login#google_success=true&accessToken={authResult.Data.AccessToken}&refreshToken={authResult.Data.RefreshToken}&userId={authResult.Data.UserId}&fullName={Uri.EscapeDataString(authResult.Data.FullName)}&email={Uri.EscapeDataString(authResult.Data.Email)}&role={authResult.Data.Role}&imageUrl={Uri.EscapeDataString(authResult.Data.ImageUrl ?? "")}";
+
+            return Redirect(redirectUrl);
         }
+
 
         /// <summary>
         /// Làm mới Access Token bằng Refresh Token (Token Rotation)

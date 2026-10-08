@@ -117,8 +117,32 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
           </span>
         </div>
 
-        {/* Right Actions: Notification & User Avatar */}
+        {/* Right Actions: Add Product, Notification & User Avatar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Add Product Button */}
+          <Link
+            to="/add-product"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-full)',
+              backgroundColor: 'transparent',
+              color: 'var(--color-primary)',
+              border: '1.5px solid var(--color-primary)',
+              fontSize: '12.5px',
+              fontWeight: 700,
+              textDecoration: 'none',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+              add_circle
+            </span>
+            <span>Thêm sản phẩm</span>
+          </Link>
+
           {/* Notification Bell */}
           <button
             type="button"

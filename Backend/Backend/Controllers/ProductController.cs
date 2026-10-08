@@ -94,9 +94,9 @@ namespace Backend.Controllers
             return Ok(new { success = true, message = "Cập nhật biến thể thành công.", data });
         }
 
-        /// <summary>Tạo sản phẩm mới (Admin only).</summary>
+        /// <summary>Tạo sản phẩm mới (Admin & Seller).</summary>
         [HttpPost]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,seller")]
         public async Task<IActionResult> Create([FromBody] CreateProductDto dto)
         {
             if (!ModelState.IsValid)

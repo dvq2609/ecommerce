@@ -1,9 +1,9 @@
-import { QUICK_CATEGORIES, type QuickCategory } from './mockHomeData';
+import type { QuickCategory } from '../types/home';
 
 export const categoryService = {
   /**
-   * Lấy danh sách danh mục từ backend API (/api/category),
-   * nếu lỗi hoặc server chưa chạy thì tự động fallback về mock categories.
+   * Lấy danh sách danh mục trực tiếp từ backend API (/api/category).
+   * Không sử dụng mock data.
    */
   async getCategories(): Promise<QuickCategory[]> {
     try {
@@ -12,7 +12,7 @@ export const categoryService = {
         throw new Error(`API error: ${response.status}`);
       }
       const json = await response.json();
-      if (json && json.success && Array.isArray(json.data) && json.data.length > 0) {
+      if (json && json.success && Array.isArray(json.data)) {
         // Icon mapper theo tên danh mục
         const getIconForCategory = (name: string): string => {
           const lower = name.toLowerCase();
@@ -37,10 +37,11 @@ export const categoryService = {
 
         return serverCategories;
       }
-    } catch {
-      // Backend chưa chạy -> Fallback mock data
+    } catch (err) {
+      console.error('Failed to fetch categories from API:', err);
     }
 
-    return QUICK_CATEGORIES;
+    return [{ id: 'cat-all', name: 'Tất cả', slug: 'all', icon: 'apps' }];
   },
 };
+

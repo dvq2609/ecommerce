@@ -12,24 +12,17 @@ import { CategoryFilterBar } from '../components/home/CategoryFilterBar';
 import { FlashSaleSection } from '../components/home/FlashSaleSection';
 import { ProductCatalogSection } from '../components/home/ProductCatalogSection';
 import { BottomNavBar } from '../components/home/BottomNavBar';
-import {
-  HERO_SLIDES,
-  TRUST_BADGES,
-  QUICK_CATEGORIES,
-  FLASH_SALE_PRODUCTS,
-  MAIN_CATALOG_PRODUCTS,
-  type QuickCategory,
-  type ProductCatalogItem,
-} from '../services/mockHomeData';
+import { HERO_SLIDES, TRUST_BADGES } from '../services/mockHomeData';
+import type { QuickCategory, ProductCatalogItem } from '../types/home';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState('cat-all');
-  const [categories, setCategories] = useState<QuickCategory[]>(QUICK_CATEGORIES);
-  const [catalogProducts, setCatalogProducts] = useState<ProductCatalogItem[]>(MAIN_CATALOG_PRODUCTS);
-  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<QuickCategory[]>([]);
+  const [catalogProducts, setCatalogProducts] = useState<ProductCatalogItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // 1. Tải danh mục sản phẩm từ backend (hoặc fallback)
   useEffect(() => {
@@ -144,12 +137,27 @@ export const HomePage: React.FC = () => {
           onSelectCategory={(id) => setActiveCategoryId(id)}
         />
 
-        {/* 7. Flash Sale Section */}
-        <FlashSaleSection
-          products={FLASH_SALE_PRODUCTS}
-          onProductClick={(p) => navigate(`/product/${p.id}`)}
-          onViewAll={() => alert('Chuyển đến trang tổng hợp Flash Sale')}
-        />
+        {/* 7. Flash Sale Section (Dữ liệu thật từ các sản phẩm đang có chiết khấu) */}
+        {catalogProducts.length > 0 && (
+          <FlashSaleSection
+            products={catalogProducts
+              .filter((p) => p.discountPercent > 0)
+              .slice(0, 4)
+              .map((p) => ({
+                id: p.id,
+                title: p.title,
+                brandTag: p.brandTag,
+                price: p.price,
+                originalPrice: p.originalPrice,
+                discountPercent: p.discountPercent,
+                soldCount: Math.min(25, p.reviewCount),
+                totalStock: 50,
+                imageUrl: p.imageUrl,
+              }))}
+            onProductClick={(p) => navigate(`/product/${p.id}`)}
+            onViewAll={() => alert('Chuyển đến trang tổng hợp Flash Sale')}
+          />
+        )}
 
         {/* 8. Main Product Catalog Section ("Gợi ý hôm nay") */}
         {loading ? (

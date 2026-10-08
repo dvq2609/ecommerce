@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ProductCatalogItem } from '../../services/mockHomeData';
+import type { ProductCatalogItem } from '../../types/home';
 
 interface ProductCardProps {
   product: ProductCatalogItem;

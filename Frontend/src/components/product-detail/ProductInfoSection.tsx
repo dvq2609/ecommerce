@@ -3,12 +3,16 @@ import type { ProductDetailData } from '../../types/productDetail';
 
 interface ProductInfoSectionProps {
   product: ProductDetailData;
+  displayPrice?: number;
 }
 
-export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product }) => {
+export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product, displayPrice }) => {
   const formatPrice = (p: number) => {
     return new Intl.NumberFormat('vi-VN').format(p) + '₫';
   };
+
+  const currentPrice = displayPrice && displayPrice > 0 ? displayPrice : product.price;
+  const currentSavings = product.originalPrice > currentPrice ? product.originalPrice - currentPrice : product.savingsAmount;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
@@ -156,10 +160,10 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product 
               letterSpacing: '-0.02em',
             }}
           >
-            {formatPrice(product.price)}
+            {formatPrice(currentPrice)}
           </span>
 
-          {product.originalPrice > product.price && (
+          {product.originalPrice > currentPrice && (
             <span
               style={{
                 fontSize: '15px',
@@ -188,7 +192,7 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product 
           )}
         </div>
 
-        {product.savingsAmount > 0 && (
+        {currentSavings > 0 && (
           <div
             style={{
               display: 'flex',
@@ -201,7 +205,7 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product 
             <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#006a62' }}>
               savings
             </span>
-            <span>Tiết kiệm {formatPrice(product.savingsAmount)} so với giá niêm yết</span>
+            <span>Tiết kiệm {formatPrice(currentSavings)} so với giá niêm yết</span>
           </div>
         )}
       </div>

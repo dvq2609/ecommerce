@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { productService } from '../services/productService';
 import type { ProductDetailData, ProductVariantColor, ProductVariantSize, RecommendedProduct } from '../types/productDetail';
@@ -30,20 +30,33 @@ export const ProductDetailPage: React.FC = () => {
   const [cartCount, setCartCount] = useState<number>(0);
   const [cartSuccessMessage, setCartSuccessMessage] = useState<string | null>(null);
 
-  // Load product detail data
+  // Load product detail data from Backend API
   useEffect(() => {
     let isMounted = true;
     window.scrollTo({ top: 0, behavior: 'instant' });
 
     const timer = setTimeout(() => {
-      const targetId = id || 'prod-blazer-flagship';
+      const targetId = id || 'ao-blazer-form-rong-ve-k-co-dien';
       productService
         .getProductDetail(targetId)
         .then((data) => {
           if (isMounted) {
             setProduct(data);
-            setSelectedColorId(data.colors[0]?.id || '');
-            setSelectedSizeId(data.sizes.find((s) => s.inStock)?.id || data.sizes[0]?.id || '');
+            const firstColorId = data.colors[0]?.id || '';
+            setSelectedColorId(firstColorId);
+
+            // Tìm size đầu tiên còn hàng ứng với màu sắc này
+            const initialSize = data.sizes.find((s) => {
+              if (data.variants && data.variants.length > 0) {
+                const v = data.variants.find(
+                  (item) => item.colorId.toString() === firstColorId && item.sizeId.toString() === s.id
+                );
+                return v && v.stockQuantity > 0 && v.isActive;
+              }
+              return s.inStock;
+            }) || data.sizes.find((s) => s.inStock) || data.sizes[0];
+
+            setSelectedSizeId(initialSize?.id || '');
             setQuantity(1);
             setActiveImageIndex(0);
             setLoading(false);
@@ -60,11 +73,55 @@ export const ProductDetailPage: React.FC = () => {
     };
   }, [id]);
 
-  const handleColorChange = (color: ProductVariantColor) => {
+  // 1. Tính toán trạng thái tồn kho của từng size tương ứng với màu đang được chọn
+  const activeSizes: ProductVariantSize[] = useMemo(() => {
+    if (!product) return [];
+    if (!product.variants || product.variants.length === 0) return product.sizes;
+    return product.sizes.map((s) => {
+      const v = product.variants?.find(
+        (variant) => variant.colorId.toString() === selectedColorId && variant.sizeId.toString() === s.id
+      );
+      return {
+        ...s,
+        inStock: v ? v.stockQuantity > 0 && v.isActive : s.inStock,
+      };
+    });
+  }, [product, selectedColorId]);
 
+  // 2. Biến thể cụ thể đang được chọn (Color x Size)
+  const activeVariant = useMemo(() => {
+    if (!product || !product.variants) return null;
+    return product.variants.find(
+      (v) => v.colorId.toString() === selectedColorId && v.sizeId.toString() === selectedSizeId
+    );
+  }, [product, selectedColorId, selectedSizeId]);
+
+  const currentStock = activeVariant ? activeVariant.stockQuantity : (product?.stockQuantity ?? 0);
+  const isOutOfStock = currentStock <= 0;
+  const currentPrice = activeVariant && activeVariant.price > 0 ? activeVariant.price : (product?.price ?? 0);
+
+  const handleColorChange = (color: ProductVariantColor) => {
     setSelectedColorId(color.id);
-    if (color.imageIndex !== undefined && product && color.imageIndex < product.images.length) {
+    if (color.imageIndex !== undefined && color.imageIndex !== null && product && color.imageIndex < product.images.length) {
       setActiveImageIndex(color.imageIndex);
+    }
+
+    // Tự động chuyển sang size còn hàng nếu size hiện tại bị hết hàng ở màu vừa chọn
+    if (product?.variants && product.variants.length > 0) {
+      const currentVar = product.variants.find(
+        (v) => v.colorId.toString() === color.id && v.sizeId.toString() === selectedSizeId
+      );
+      if (!currentVar || currentVar.stockQuantity <= 0) {
+        const firstAvailable = product.sizes.find((s) => {
+          const v = product.variants?.find(
+            (item) => item.colorId.toString() === color.id && item.sizeId.toString() === s.id
+          );
+          return v && v.stockQuantity > 0 && v.isActive;
+        });
+        if (firstAvailable) {
+          setSelectedSizeId(firstAvailable.id);
+        }
+      }
     }
   };
 
@@ -74,20 +131,29 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleAddToCart = () => {
     if (!product) return;
+    if (isOutOfStock) {
+      alert('Biến thể này hiện đã hết hàng, vui lòng chọn màu sắc hoặc kích cỡ khác!');
+      return;
+    }
     const chosenColor = product.colors.find((c) => c.id === selectedColorId)?.name || 'Mặc định';
     const chosenSize = product.sizes.find((s) => s.id === selectedSizeId)?.name || 'M';
+    const skuText = activeVariant?.sku ? ` (SKU: ${activeVariant.sku})` : '';
 
     setCartCount((prev) => prev + quantity);
     setCartSuccessMessage(
-      `Đã thêm ${quantity}x "${product.title}" (${chosenColor} • Size ${chosenSize}) vào giỏ hàng!`
+      `Đã thêm ${quantity}x "${product.title}" (${chosenColor} • Size ${chosenSize})${skuText} vào giỏ hàng!`
     );
 
     setTimeout(() => {
       setCartSuccessMessage(null);
-    }, 3200);
+    }, 3500);
   };
 
   const handleBuyNow = () => {
+    if (isOutOfStock) {
+      alert('Biến thể này hiện đã hết hàng, vui lòng chọn màu sắc hoặc kích cỡ khác!');
+      return;
+    }
     handleAddToCart();
     alert('Đang chuyển đến cổng thanh toán ShopVibe Checkout...');
   };
@@ -100,7 +166,7 @@ export const ProductDetailPage: React.FC = () => {
     navigate(`/product/${item.id}`);
   };
 
-  if (loading || !product) {
+  if (loading) {
     return (
       <div
         style={{
@@ -118,8 +184,57 @@ export const ProductDetailPage: React.FC = () => {
           style={{ width: '36px', height: '36px', borderTopColor: 'var(--color-primary)' }}
         />
         <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-on-surface-variant)' }}>
-          Đang tải chi tiết sản phẩm...
+          Đang tải chi tiết sản phẩm từ hệ thống...
         </span>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: 'var(--color-surface-bg)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '16px',
+          padding: '24px',
+          textAlign: 'center',
+        }}
+      >
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: '56px', color: 'var(--color-outline)' }}
+        >
+          inventory_2
+        </span>
+        <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-on-surface)' }}>
+          Không tìm thấy sản phẩm
+        </h2>
+        <p style={{ fontSize: '14px', color: 'var(--color-on-surface-variant)', maxWidth: '420px', lineHeight: 1.5 }}>
+          Sản phẩm bạn đang tìm kiếm không tồn tại trong cơ sở dữ liệu hoặc đường dẫn đã thay đổi.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          style={{
+            marginTop: '8px',
+            padding: '12px 28px',
+            borderRadius: 'var(--radius-full)',
+            backgroundColor: 'var(--color-primary)',
+            color: '#ffffff',
+            fontSize: '14px',
+            fontWeight: 700,
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: 'var(--shadow-md)',
+          }}
+        >
+          Quay lại trang chủ
+        </button>
       </div>
     );
   }
@@ -182,12 +297,12 @@ export const ProductDetailPage: React.FC = () => {
 
           {/* Right Column: Information, Pricing, Variants & Guarantees */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', width: '100%' }}>
-            <ProductInfoSection product={product} />
+            <ProductInfoSection product={product} displayPrice={currentPrice} />
 
             <ProductVariantSelector
               colors={product.colors}
-              sizes={product.sizes}
-              stockQuantity={product.stockQuantity}
+              sizes={activeSizes}
+              stockQuantity={currentStock}
               selectedColorId={selectedColorId}
               selectedSizeId={selectedSizeId}
               quantity={quantity}
@@ -212,17 +327,19 @@ export const ProductDetailPage: React.FC = () => {
             >
               <button
                 type="button"
+                disabled={isOutOfStock}
                 onClick={handleAddToCart}
                 style={{
                   flex: 1,
                   height: '48px',
                   borderRadius: 'var(--radius-full)',
-                  border: '1.5px solid var(--color-primary)',
+                  border: isOutOfStock ? '1.5px solid var(--color-outline)' : '1.5px solid var(--color-primary)',
                   backgroundColor: 'transparent',
-                  color: 'var(--color-primary)',
+                  color: isOutOfStock ? 'var(--color-outline)' : 'var(--color-primary)',
                   fontSize: '14px',
                   fontWeight: 700,
-                  cursor: 'pointer',
+                  cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                  opacity: isOutOfStock ? 0.6 : 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -230,47 +347,53 @@ export const ProductDetailPage: React.FC = () => {
                   transition: 'all 0.15s ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-primary-fixed)';
+                  if (!isOutOfStock) e.currentTarget.style.backgroundColor = 'var(--color-primary-fixed)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent';
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                  add_shopping_cart
+                  {isOutOfStock ? 'production_quantity_limits' : 'add_shopping_cart'}
                 </span>
-                Thêm vào giỏ
+                {isOutOfStock ? 'Tạm hết hàng' : 'Thêm vào giỏ'}
               </button>
 
               <button
                 type="button"
+                disabled={isOutOfStock}
                 onClick={handleBuyNow}
                 style={{
                   flex: 1,
                   height: '48px',
                   borderRadius: 'var(--radius-full)',
                   border: 'none',
-                  backgroundColor: 'var(--color-primary)',
-                  color: '#ffffff',
+                  backgroundColor: isOutOfStock ? 'var(--color-surface-container-high)' : 'var(--color-primary)',
+                  color: isOutOfStock ? 'var(--color-on-surface-variant)' : '#ffffff',
                   fontSize: '14px',
                   fontWeight: 700,
-                  cursor: 'pointer',
+                  cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                  opacity: isOutOfStock ? 0.7 : 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 4px 14px rgba(186, 0, 54, 0.3)',
+                  boxShadow: isOutOfStock ? 'none' : '0 4px 14px rgba(186, 0, 54, 0.3)',
                   transition: 'all 0.15s ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  if (!isOutOfStock) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-                  e.currentTarget.style.transform = 'translateY(0)';
+                  if (!isOutOfStock) {
+                    e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }
                 }}
               >
-                Mua ngay
+                {isOutOfStock ? 'Hết hàng' : 'Mua ngay'}
               </button>
             </div>
           </div>

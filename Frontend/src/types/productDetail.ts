@@ -39,10 +39,25 @@ export interface RecommendedProduct {
   imageUrl: string;
 }
 
+export interface ProductVariantItem {
+  variantId: number;
+  productId: number;
+  colorId: number;
+  colorName: string;
+  hexCode: string;
+  sizeId: number;
+  sizeName: string;
+  sku: string;
+  price: number;
+  stockQuantity: number;
+  isActive: boolean;
+}
+
 export interface ProductDetailData {
   id: string;
   sku: string;
   title: string;
+  slug?: string;
   collectionTag: string;
   brandTag: string;
   isMall: boolean;
@@ -64,6 +79,7 @@ export interface ProductDetailData {
   images: string[];
   colors: ProductVariantColor[];
   sizes: ProductVariantSize[];
+  variants?: ProductVariantItem[];
   stockQuantity: number;
   shippingEstimate: {
     deliveryDateText: string;
@@ -84,3 +100,4 @@ export interface ProductDetailData {
   reviews: ProductReviewItem[];
   recommendations: RecommendedProduct[];
 }
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FLASH_SALE_PRODUCTS, type FlashSaleItem } from '../../services/mockHomeData';
+import type { FlashSaleItem } from '../../types/home';
 
 interface FlashSaleSectionProps {
   products?: FlashSaleItem[];
@@ -8,7 +8,7 @@ interface FlashSaleSectionProps {
 }
 
 export const FlashSaleSection: React.FC<FlashSaleSectionProps> = ({
-  products = FLASH_SALE_PRODUCTS,
+  products = [],
   onProductClick,
   onViewAll,
 }) => {
@@ -22,6 +22,10 @@ export const FlashSaleSection: React.FC<FlashSaleSectionProps> = ({
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  if (products.length === 0) {
+    return null;
+  }
 
   const hours = String(Math.floor(timeLeft / 3600)).padStart(2, '0');
   const minutes = String(Math.floor((timeLeft % 3600) / 60)).padStart(2, '0');

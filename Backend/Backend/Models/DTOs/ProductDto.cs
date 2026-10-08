@@ -121,6 +121,11 @@ namespace Backend.Models.DTOs
         public string? CareInstructions { get; set; }
 
         /// <summary>
+        /// ID người bán sở hữu sản phẩm (tự động gán từ JWT Token).
+        /// </summary>
+        public int SellerId { get; set; }
+
+        /// <summary>
         /// Danh sách URL ảnh sản phẩm (upload trước, truyền URL vào đây).
         /// </summary>
         public List<ProductImageInputDto> Images { get; set; } = new();
@@ -197,6 +202,8 @@ namespace Backend.Models.DTOs
     public class ProductResponseDto
     {
         public int ProductId { get; set; }
+        public int SellerId { get; set; }
+        public string? SellerName { get; set; }
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public int BrandId { get; set; }
@@ -260,6 +267,8 @@ namespace Backend.Models.DTOs
     public class ProductDetailResponseDto
     {
         public int ProductId { get; set; }
+        public int SellerId { get; set; }
+        public string? SellerName { get; set; }
         public string Sku { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string Slug { get; set; } = string.Empty;

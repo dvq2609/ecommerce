@@ -1,5 +1,5 @@
 import React from 'react';
-import { QUICK_CATEGORIES, type QuickCategory } from '../../services/mockHomeData';
+import type { QuickCategory } from '../../types/home';
 
 interface CategoryFilterBarProps {
   categories?: QuickCategory[];
@@ -8,7 +8,7 @@ interface CategoryFilterBarProps {
 }
 
 export const CategoryFilterBar: React.FC<CategoryFilterBarProps> = ({
-  categories = QUICK_CATEGORIES,
+  categories = [],
   activeCategoryId,
   onSelectCategory,
 }) => {

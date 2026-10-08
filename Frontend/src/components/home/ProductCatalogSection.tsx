@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ProductCard } from './ProductCard';
-import { MAIN_CATALOG_PRODUCTS, type ProductCatalogItem } from '../../services/mockHomeData';
+import type { ProductCatalogItem } from '../../types/home';
 
 interface ProductCatalogSectionProps {
   initialProducts?: ProductCatalogItem[];
@@ -10,7 +10,7 @@ interface ProductCatalogSectionProps {
 type SortTab = 'popular' | 'latest' | 'best_seller' | 'price';
 
 export const ProductCatalogSection: React.FC<ProductCatalogSectionProps> = ({
-  initialProducts = MAIN_CATALOG_PRODUCTS,
+  initialProducts = [],
   onProductClick,
 }) => {
   const [activeTab, setActiveTab] = useState<SortTab>('popular');
@@ -173,72 +173,100 @@ export const ProductCatalogSection: React.FC<ProductCatalogSectionProps> = ({
       </div>
 
       {/* Responsive Product Grid: 2 cols on mobile, 3-4 cols on desktop */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(165px, 1fr))',
-          gap: '12px',
-        }}
-      >
-        {currentProducts.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            isLiked={!!likedMap[product.id]}
-            onToggleLike={toggleLike}
-            onClick={onProductClick}
-          />
-        ))}
-      </div>
-
-      {/* Load More Button */}
-      <div
-        style={{
-          marginTop: '32px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <button
-          type="button"
-          onClick={handleLoadMore}
+      {currentProducts.length === 0 ? (
+        <div
           style={{
-            height: '44px',
-            padding: '0 24px',
-            borderRadius: 'var(--radius-full)',
+            padding: '48px 16px',
+            textAlign: 'center',
             backgroundColor: 'var(--color-surface-card)',
-            boxShadow: 'var(--shadow-sm)',
-            border: '1px solid var(--color-border-subtle)',
-            color: 'var(--color-on-surface)',
-            fontSize: '13.5px',
-            fontWeight: 700,
+            borderRadius: 'var(--radius-xl)',
+            border: '1px dashed var(--color-border-subtle)',
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            gap: '8px',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
+            gap: '12px',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-container)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-card)')}
         >
-          <span>{extraLoaded ? 'Đã tải thêm sản phẩm' : 'Xem thêm 140+ sản phẩm'}</span>
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-            expand_more
+          <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--color-outline)' }}>
+            inventory_2
           </span>
-        </button>
-
-        <span
+          <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-on-surface)' }}>
+            Chưa có sản phẩm nào trong danh mục này.
+          </p>
+          <p style={{ fontSize: '13px', color: 'var(--color-on-surface-variant)' }}>
+            Dữ liệu được tải trực tiếp từ hệ thống Backend SQL Server.
+          </p>
+        </div>
+      ) : (
+        <div
           style={{
-            fontSize: '12px',
-            color: 'var(--color-on-surface-variant)',
-            marginTop: '8px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(165px, 1fr))',
+            gap: '12px',
           }}
         >
-          Đang hiển thị {Math.min(currentProducts.length, 150)} trên 150 sản phẩm
-        </span>
-      </div>
+          {currentProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              isLiked={!!likedMap[product.id]}
+              onToggleLike={toggleLike}
+              onClick={onProductClick}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Load More Button (Chỉ hiển thị khi có nhiều hơn số lượng hiện tại) */}
+      {sortedList.length > displayCount && (
+        <div
+          style={{
+            marginTop: '32px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <button
+            type="button"
+            onClick={handleLoadMore}
+            style={{
+              height: '44px',
+              padding: '0 24px',
+              borderRadius: 'var(--radius-full)',
+              backgroundColor: 'var(--color-surface-card)',
+              boxShadow: 'var(--shadow-sm)',
+              border: '1px solid var(--color-border-subtle)',
+              color: 'var(--color-on-surface)',
+              fontSize: '13.5px',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-container)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-card)')}
+          >
+            <span>{extraLoaded ? 'Đã tải thêm sản phẩm' : `Xem thêm (${sortedList.length - displayCount}) sản phẩm`}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+              expand_more
+            </span>
+          </button>
+
+          <span
+            style={{
+              fontSize: '12px',
+              color: 'var(--color-on-surface-variant)',
+              marginTop: '8px',
+            }}
+          >
+            Đang hiển thị {Math.min(currentProducts.length, sortedList.length)} trên {sortedList.length} sản phẩm
+          </span>
+        </div>
+      )}
     </div>
   );
 };

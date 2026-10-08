@@ -11,6 +11,11 @@ namespace Backend.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ProductId { get; set; }
+        
+        [Required]
+        [ForeignKey("User")]
+        public int SellerId { get; set; }
+
 
         [Required]
         [ForeignKey("Category")]
@@ -75,5 +80,6 @@ namespace Backend.Models
         public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
         public virtual ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
         public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public virtual User Seller {get;set;} = null!;
     }
 }

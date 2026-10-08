@@ -72,6 +72,7 @@ namespace Backend.Services.ProductService
             {
                 CategoryId         = dto.CategoryId,
                 BrandId            = dto.BrandId,
+                SellerId           = dto.SellerId > 0 ? dto.SellerId : 1,
                 ProductName        = dto.ProductName.Trim(),
                 ProductDescription = dto.ProductDescription?.Trim() ?? string.Empty,
                 Slug               = slug,
@@ -249,6 +250,8 @@ namespace Backend.Services.ProductService
         private static ProductResponseDto MapToDto(Product p) => new()
         {
             ProductId          = p.ProductId,
+            SellerId           = p.SellerId,
+            SellerName         = p.Seller?.FullName ?? "ShopVibe Official",
             CategoryId         = p.CategoryId,
             CategoryName       = p.Category?.CategoryName ?? string.Empty,
             BrandId            = p.BrandId,
@@ -357,6 +360,8 @@ namespace Backend.Services.ProductService
             return new ProductDetailResponseDto
             {
                 ProductId          = p.ProductId,
+                SellerId           = p.SellerId,
+                SellerName         = p.Seller?.FullName ?? "ShopVibe Official",
                 Sku                = p.Variants?.FirstOrDefault()?.Sku ?? $"VIBE-{p.ProductId:D4}",
                 Title              = p.ProductName,
                 Slug               = p.Slug,

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { AdminSellerLayout } from '../components/layout/AdminSellerLayout';
+import { authService } from '../services/authService';
 
 interface CategoryItem {
   categoryId: number;
@@ -45,6 +47,8 @@ interface VariantInput {
 
 export const AddProductPage: React.FC = () => {
   const navigate = useNavigate();
+  const currentUser = authService.getCurrentUser();
+  const isAdmin = currentUser?.role?.toLowerCase() === 'admin';
 
   // Master data from Backend API
   const [categories, setCategories] = useState<CategoryItem[]>([]);
@@ -52,6 +56,13 @@ export const AddProductPage: React.FC = () => {
   const [availableColors, setAvailableColors] = useState<ColorItem[]>([]);
   const [availableSizes, setAvailableSizes] = useState<SizeItem[]>([]);
   const [loadingMaster, setLoadingMaster] = useState(true);
+
+  // Quick Add Color Modal State
+  const [showQuickColorModal, setShowQuickColorModal] = useState(false);
+  const [quickColorName, setQuickColorName] = useState('');
+  const [quickHexCode, setQuickHexCode] = useState('#2A2D34');
+  const [quickColorError, setQuickColorError] = useState<string | null>(null);
+  const [submittingQuickColor, setSubmittingQuickColor] = useState(false);
 
   // Form Basic Info
   const [productName, setProductName] = useState('');
@@ -332,78 +343,96 @@ export const AddProductPage: React.FC = () => {
     }
   };
 
+  const handleQuickAddColor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setQuickColorError(null);
+    const trimmed = quickColorName.trim();
+    if (!trimmed) {
+      setQuickColorError('Vui lòng nhập tên màu.');
+      return;
+    }
+    try {
+      setSubmittingQuickColor(true);
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch('/api/color', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ colorName: trimmed, hexCode: quickHexCode.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || 'Không thể tạo màu mới.');
+      }
+
+      const newColor = json.data;
+      setAvailableColors((prev) => [...prev, newColor]);
+      if (!selectedColorIds.includes(newColor.colorId)) {
+        setSelectedColorIds((prev) => [...prev, newColor.colorId]);
+      }
+      setShowQuickColorModal(false);
+      setQuickColorName('');
+      setQuickHexCode('#2A2D34');
+    } catch (err: any) {
+      setQuickColorError(err.message || 'Lỗi khi tạo màu mới.');
+    } finally {
+      setSubmittingQuickColor(false);
+    }
+  };
+
   if (loadingMaster) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          backgroundColor: 'var(--color-surface-bg)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '12px',
-        }}
-      >
-        <div className="btn-spinner" style={{ width: '36px', height: '36px', borderTopColor: 'var(--color-primary)' }} />
-        <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-on-surface-variant)' }}>
-          Đang tải dữ liệu danh mục & bảng màu từ hệ thống...
-        </span>
-      </div>
+      <AdminSellerLayout>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            padding: '80px 0',
+          }}
+        >
+          <div className="btn-spinner" style={{ width: '36px', height: '36px', borderTopColor: 'var(--color-primary)' }} />
+          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-on-surface-variant)' }}>
+            Đang tải dữ liệu danh mục & bảng màu từ hệ thống...
+          </span>
+        </div>
+      </AdminSellerLayout>
     );
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: 'var(--color-surface-bg)',
-        paddingBottom: '60px',
-      }}
+    <AdminSellerLayout
+      title="Thêm Sản Phẩm & Ma Trận Biến Thể"
+      subtitle="Thiết lập thông tin sản phẩm, thông số thời trang & ma trận biến thể theo chuẩn SQL Server"
     >
-      {/* Header Bar */}
-      <div
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
-          backgroundColor: 'rgba(252, 249, 248, 0.95)',
-          backdropFilter: 'blur(16px)',
-          borderBottom: '1px solid var(--color-border-subtle)',
-          padding: '16px 24px',
-        }}
-      >
+      <div style={{ paddingBottom: '60px' }}>
+        {/* Header Action Bar */}
         <div
           style={{
-            maxWidth: '1080px',
-            margin: '0 auto',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            marginBottom: '20px',
+            backgroundColor: '#ffffff',
+            padding: '16px 20px',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link
-              to="/"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                color: 'var(--color-on-surface-variant)',
-                textDecoration: 'none',
-              }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: '24px', color: '#ff385c' }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
-                arrow_back
-              </span>
-            </Link>
-            <div>
-              <h1 style={{ fontSize: '19px', fontWeight: 800, color: 'var(--color-on-surface)' }}>
-                Thêm Sản Phẩm & Biến Thể Mới
-              </h1>
-              <span style={{ fontSize: '12px', color: 'var(--color-on-surface-variant)' }}>
-                Tạo sản phẩm, thông số thời trang và ma trận biến thể theo chuẩn SQL Server
-              </span>
-            </div>
+              add_circle
+            </span>
+            <span style={{ fontSize: '15px', fontWeight: 700, color: '#222222' }}>
+              Biểu mẫu đăng bán sản phẩm mới
+            </span>
           </div>
 
           <button
@@ -414,16 +443,17 @@ export const AddProductPage: React.FC = () => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '10px 22px',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: 'var(--color-primary)',
+              padding: '10px 24px',
+              borderRadius: '8px',
+              backgroundColor: '#ff385c',
               color: '#ffffff',
               fontSize: '14px',
-              fontWeight: 700,
+              fontWeight: 600,
               border: 'none',
               cursor: submitting ? 'not-allowed' : 'pointer',
-              boxShadow: 'var(--shadow-sm)',
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.08)',
               opacity: submitting ? 0.7 : 1,
+              transition: 'background 150ms ease-out',
             }}
           >
             {submitting ? (
@@ -913,9 +943,43 @@ export const AddProductPage: React.FC = () => {
 
             {/* Bước 4.1: Chọn màu */}
             <div>
-              <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>
-                A. Chọn các màu sắc áp dụng:
-              </span>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '10px',
+                }}
+              >
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>
+                  A. Chọn các màu sắc áp dụng:
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setShowQuickColorModal(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #dddddd',
+                    color: '#222222',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'background 150ms ease-out',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#ff385c' }}>
+                    add_circle
+                  </span>
+                  <span>Thêm màu mới</span>
+                </button>
+              </div>
+
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {availableColors.map((c) => {
                   const selected = selectedColorIds.includes(c.colorId);
@@ -955,9 +1019,43 @@ export const AddProductPage: React.FC = () => {
 
             {/* Bước 4.2: Chọn Size */}
             <div>
-              <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>
-                B. Chọn các kích cỡ áp dụng:
-              </span>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '10px',
+                }}
+              >
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>
+                  B. Chọn các kích cỡ áp dụng:
+                </span>
+
+                {isAdmin && (
+                  <Link
+                    to="/admin/sizes"
+                    target="_blank"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '4px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: '#eef2ff',
+                      border: '1px solid #c7d2fe',
+                      color: '#4f46e5',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                      straighten
+                    </span>
+                    <span>Quản lý kích cỡ (Admin)</span>
+                  </Link>
+                )}
+              </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {availableSizes.map((s) => {
                   const selected = selectedSizeIds.includes(s.sizeId);
@@ -1112,6 +1210,197 @@ export const AddProductPage: React.FC = () => {
           </div>
         </form>
       </div>
-    </div>
+
+      {/* QUICK ADD COLOR MODAL */}
+      {showQuickColorModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '16px',
+              padding: '24px',
+              maxWidth: '420px',
+              width: '100%',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e2e8f0',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '16px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#0d9488' }}>
+                  palette
+                </span>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: '#0f172a' }}>
+                  Thêm màu sắc mới
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowQuickColorModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                  close
+                </span>
+              </button>
+            </div>
+
+            {quickColorError && (
+              <div
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  color: '#b91c1c',
+                  fontSize: '12.5px',
+                  marginBottom: '14px',
+                }}
+              >
+                {quickColorError}
+              </div>
+            )}
+
+            <form onSubmit={handleQuickAddColor}>
+              <div style={{ marginBottom: '14px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    marginBottom: '4px',
+                  }}
+                >
+                  Tên màu sắc
+                </label>
+                <input
+                  type="text"
+                  placeholder="VD: Xanh Mint, Hồng Pastel..."
+                  value={quickColorName}
+                  onChange={(e) => setQuickColorName(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '13.5px',
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ marginBottom: '18px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    marginBottom: '4px',
+                  }}
+                >
+                  Chọn mã màu Hex
+                </label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    value={quickHexCode}
+                    onChange={(e) => setQuickHexCode(e.target.value.toUpperCase())}
+                    style={{
+                      width: '42px',
+                      height: '38px',
+                      padding: '2px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      cursor: 'pointer',
+                      backgroundColor: '#ffffff',
+                    }}
+                  />
+                  <input
+                    type="text"
+                    value={quickHexCode}
+                    onChange={(e) => setQuickHexCode(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '13.5px',
+                      fontFamily: 'monospace',
+                      fontWeight: 600,
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowQuickColorModal(false)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    backgroundColor: '#f1f5f9',
+                    border: 'none',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#475569',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingQuickColor}
+                  style={{
+                    padding: '8px 18px',
+                    borderRadius: '8px',
+                    backgroundColor: '#ff385c',
+                    border: 'none',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#ffffff',
+                    cursor: submittingQuickColor ? 'not-allowed' : 'pointer',
+                    opacity: submittingQuickColor ? 0.7 : 1,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+                  }}
+                >
+                  {submittingQuickColor ? 'Đang lưu...' : 'Thêm & Chọn màu'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </AdminSellerLayout>
   );
 };
+

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Backend.Models.DTOs;
 using Backend.Services.ProductService;
 using Microsoft.AspNetCore.Authorization;
@@ -82,9 +83,9 @@ namespace Backend.Controllers
             return Ok(new { success = true, data = variants });
         }
 
-        /// <summary>Cập nhật giá và tồn kho của 1 biến thể (Admin only).</summary>
+        /// <summary>Cập nhật giá và tồn kho của 1 biến thể (Admin & Seller).</summary>
         [HttpPatch("variants/{variantId:int}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,seller")]
         public async Task<IActionResult> UpdateVariant(int variantId, [FromBody] UpdateProductVariantDto dto)
         {
             var (success, error, data) = await _productService.UpdateVariantAsync(variantId, dto);
@@ -94,13 +95,24 @@ namespace Backend.Controllers
             return Ok(new { success = true, message = "Cập nhật biến thể thành công.", data });
         }
 
-        /// <summary>Tạo sản phẩm mới (Admin & Seller).</summary>
+        /// <summary>Tạo sản phẩm mới (Chỉ dành riêng cho Seller).</summary>
         [HttpPost]
-        [Authorize(Roles = "admin,seller")]
+        [Authorize(Roles = "seller")]
         public async Task<IActionResult> Create([FromBody] CreateProductDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new { success = false, errors = ModelState });
+
+            // Trích xuất UserId từ JWT token của Seller đang đăng nhập
+            var userIdClaim = User.FindFirst("UserId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out int sellerId))
+            {
+                dto.SellerId = sellerId;
+            }
+            else
+            {
+                return Unauthorized(new { success = false, message = "Không xác thực được danh tính người bán." });
+            }
 
             var (success, error, data) = await _productService.CreateAsync(dto);
             if (!success)
@@ -110,13 +122,26 @@ namespace Backend.Controllers
                 new { success = true, message = "Tạo sản phẩm thành công.", data });
         }
 
-        /// <summary>Cập nhật sản phẩm (Admin only).</summary>
+        /// <summary>Cập nhật sản phẩm (Seller sở hữu hoặc Admin).</summary>
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,seller")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateProductDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new { success = false, errors = ModelState });
+
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value?.ToLower();
+            var userIdClaim = User.FindFirst("UserId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int currentUserId);
+
+            if (userRole == "seller")
+            {
+                var existing = await _productService.GetByIdAsync(id);
+                if (existing == null)
+                    return NotFound(new { success = false, message = "Không tìm thấy sản phẩm." });
+                if (existing.SellerId != currentUserId)
+                    return StatusCode(403, new { success = false, message = "Bạn chỉ có quyền chỉnh sửa sản phẩm do chính bạn đăng bán." });
+            }
 
             var (success, error, data) = await _productService.UpdateAsync(id, dto);
             if (!success)
@@ -125,11 +150,24 @@ namespace Backend.Controllers
             return Ok(new { success = true, message = "Cập nhật sản phẩm thành công.", data });
         }
 
-        /// <summary>Xóa sản phẩm (Admin only).</summary>
+        /// <summary>Xóa sản phẩm (Seller sở hữu hoặc Admin).</summary>
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,seller")]
         public async Task<IActionResult> Delete(int id)
         {
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value?.ToLower();
+            var userIdClaim = User.FindFirst("UserId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userIdClaim, out int currentUserId);
+
+            if (userRole == "seller")
+            {
+                var existing = await _productService.GetByIdAsync(id);
+                if (existing == null)
+                    return NotFound(new { success = false, message = "Không tìm thấy sản phẩm." });
+                if (existing.SellerId != currentUserId)
+                    return StatusCode(403, new { success = false, message = "Bạn chỉ có quyền xóa sản phẩm do chính bạn đăng bán." });
+            }
+
             var (success, error) = await _productService.DeleteAsync(id);
             if (!success)
                 return BadRequest(new { success = false, message = error });
@@ -139,9 +177,9 @@ namespace Backend.Controllers
 
         // ─── IMAGE MANAGEMENT ────────────────────────────────────────────────────
 
-        /// <summary>Thêm ảnh vào sản phẩm (Admin only).</summary>
+        /// <summary>Thêm ảnh vào sản phẩm (Admin & seller).</summary>
         [HttpPost("{id:int}/images")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,seller")]
         public async Task<IActionResult> AddImages(int id, [FromBody] List<ProductImageInputDto> images)
         {
             if (images == null || images.Count == 0)
@@ -154,9 +192,9 @@ namespace Backend.Controllers
             return Ok(new { success = true, message = "Thêm ảnh thành công." });
         }
 
-        /// <summary>Xóa ảnh sản phẩm (Admin only).</summary>
+        /// <summary>Xóa ảnh sản phẩm (Admin & seller).</summary>
         [HttpDelete("{id:int}/images/{imageId:int}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,seller")]
         public async Task<IActionResult> DeleteImage(int id, int imageId)
         {
             var (success, error) = await _productService.DeleteImageAsync(id, imageId);
@@ -166,9 +204,9 @@ namespace Backend.Controllers
             return Ok(new { success = true, message = "Xóa ảnh thành công." });
         }
 
-        /// <summary>Đặt ảnh chính cho sản phẩm (Admin only).</summary>
+        /// <summary>Đặt ảnh chính cho sản phẩm (Admin & seller).</summary>
         [HttpPatch("{id:int}/images/{imageId:int}/set-primary")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,seller")]
         public async Task<IActionResult> SetPrimaryImage(int id, int imageId)
         {
             var (success, error) = await _productService.SetPrimaryImageAsync(id, imageId);

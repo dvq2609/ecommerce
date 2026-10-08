@@ -51,6 +51,7 @@ namespace Backend.Data
                 {
                     CategoryId         = category.CategoryId,
                     BrandId            = brand.BrandId,
+                    SellerId           = 1,
                     ProductName        = "Áo Blazer Form Rộng Ve K Cổ Điển",
                     Slug               = productSlug,
                     ProductDescription = "Áo blazer thiết kế độc quyền từ BST ShopVibe Atelier. Phom dáng oversize thời thượng với ve áo chữ K cổ điển, mang hơi thở Parisian Chic thanh lịch hiện đại.\n\nCấu trúc 2 lớp cao cấp với lớp ngoài là vải Wool Blend đứng phom, lót lụa habutai mềm mại chống nhăn và thoáng khí. Thích hợp cho cả môi trường công sở lẫn dạo phố cuối tuần.",

@@ -78,6 +78,12 @@ namespace Backend.Models
                 .HasForeignKey(p => p.BrandId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Seller)
+                .WithMany()
+                .HasForeignKey(p => p.SellerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<ProductImage>()
                 .HasOne(pi => pi.Product)
                 .WithMany(p => p.Images)

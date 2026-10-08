@@ -34,9 +34,9 @@ namespace Backend.Controllers
             return Ok(new { success = true, data = colors });
         }
 
-        /// <summary>Thêm màu mới vào danh mục (Admin only).</summary>
+        /// <summary>Thêm màu mới vào danh mục (Admin & Seller).</summary>
         [HttpPost]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,seller")]
         public async Task<IActionResult> Create([FromBody] CreateColorDto dto)
         {
             if (!ModelState.IsValid)

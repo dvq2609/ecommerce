@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
 
 interface HomeHeaderProps {
   currentUser: { fullName: string; email: string; role?: string } | null;
@@ -14,6 +15,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const { itemCount, openDrawer } = useCart();
 
   return (
     <header
@@ -117,8 +119,57 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
           </span>
         </div>
 
-        {/* Right Actions: Notification & User Avatar */}
+        {/* Right Actions: Notification, Cart & User Avatar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Cart Button */}
+          <button
+            type="button"
+            aria-label="Giỏ hàng"
+            onClick={openDrawer}
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              color: 'var(--color-on-surface)',
+              backgroundColor: 'transparent',
+              transition: 'background-color 0.2s',
+              cursor: 'pointer',
+              border: 'none',
+            }}
+            title="Giỏ hàng"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+              shopping_bag
+            </span>
+            {itemCount > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '4px',
+                  minWidth: '18px',
+                  height: '18px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#ff385c',
+                  color: '#ffffff',
+                  fontSize: '10.5px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 4px',
+                  border: '1.5px solid #ffffff',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                }}
+              >
+                {itemCount > 99 ? '99+' : itemCount}
+              </span>
+            )}
+          </button>
 
           {/* Notification Bell */}
           <button
@@ -258,7 +309,11 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
                           border: '1px solid #dddddd',
                         }}
                       >
-                        {(currentUser.role || '').toLowerCase() === 'admin' ? '👑 Admin' : '🏪 Người bán'}
+                        {(currentUser.role || '').toLowerCase() === 'admin'
+                          ? '👑 Admin'
+                          : (currentUser.role || '').toLowerCase() === 'seller'
+                          ? '🏪 Người bán'
+                          : '🛍️ Khách hàng'}
                       </span>
                     )}
                   </div>

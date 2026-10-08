@@ -14,9 +14,11 @@ import { ProductCatalogSection } from '../components/home/ProductCatalogSection'
 import { BottomNavBar } from '../components/home/BottomNavBar';
 import { HERO_SLIDES, TRUST_BADGES } from '../services/mockHomeData';
 import type { QuickCategory, ProductCatalogItem } from '../types/home';
+import { useCart } from '../context/CartContext';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { itemCount } = useCart();
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState('cat-all');
@@ -184,7 +186,7 @@ export const HomePage: React.FC = () => {
       </main>
 
       {/* 9. Bottom Navigation Bar */}
-      <BottomNavBar cartCount={0} />
+      <BottomNavBar cartCount={itemCount} />
     </div>
   );
 };

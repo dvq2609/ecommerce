@@ -11,10 +11,12 @@ import { ProductSpecifications } from '../components/product-detail/ProductSpeci
 import { ProductReviewsSection } from '../components/product-detail/ProductReviewsSection';
 import { ProductRecommendations } from '../components/product-detail/ProductRecommendations';
 import { ProductDetailBottomBar } from '../components/product-detail/ProductDetailBottomBar';
+import { useCart } from '../context/CartContext';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { addToCart, openDrawer, itemCount } = useCart();
 
   const [product, setProduct] = useState<ProductDetailData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,7 +29,6 @@ export const ProductDetailPage: React.FC = () => {
   const [quantity, setQuantity] = useState<number>(1);
 
   // Cart & UI Feedback
-  const [cartCount, setCartCount] = useState<number>(0);
   const [cartSuccessMessage, setCartSuccessMessage] = useState<string | null>(null);
 
   // Load product detail data from Backend API
@@ -129,17 +130,33 @@ export const ProductDetailPage: React.FC = () => {
     setSelectedSizeId(size.id);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
     if (isOutOfStock) {
       alert('Biến thể này hiện đã hết hàng, vui lòng chọn màu sắc hoặc kích cỡ khác!');
       return;
     }
+
+    const prodId = Number(product.id) || 2;
+    const variantId = activeVariant?.variantId ? Number(activeVariant.variantId) : null;
+
+    const res = await addToCart(prodId, variantId, quantity);
+
+    if (!res.success) {
+      if (res.message?.includes('đăng nhập')) {
+        if (window.confirm('Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng. Chuyển đến trang Đăng nhập ngay?')) {
+          navigate('/login');
+        }
+      } else {
+        alert(res.message || 'Không thể thêm sản phẩm vào giỏ hàng.');
+      }
+      return;
+    }
+
     const chosenColor = product.colors.find((c) => c.id === selectedColorId)?.name || 'Mặc định';
     const chosenSize = product.sizes.find((s) => s.id === selectedSizeId)?.name || 'M';
     const skuText = activeVariant?.sku ? ` (SKU: ${activeVariant.sku})` : '';
 
-    setCartCount((prev) => prev + quantity);
     setCartSuccessMessage(
       `Đã thêm ${quantity}x "${product.title}" (${chosenColor} • Size ${chosenSize})${skuText} vào giỏ hàng!`
     );
@@ -253,8 +270,8 @@ export const ProductDetailPage: React.FC = () => {
       {/* 1. Header */}
       <ProductDetailHeader
         title={product.title}
-        cartCount={cartCount}
-        onOpenCart={() => alert(`Giỏ hàng hiện có ${cartCount} sản phẩm`)}
+        cartCount={itemCount}
+        onOpenCart={openDrawer}
       />
 
       {/* Main Product Container */}

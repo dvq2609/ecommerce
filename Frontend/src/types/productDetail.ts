@@ -71,7 +71,7 @@ export interface ProductDetailData {
   ratingCount: number;
   soldCountText: string;
   satisfactionRate: string;
-  vouchers: Array<{
+  vouchers?: Array<{
     id: string;
     text: string;
     type: 'discount' | 'shipping' | 'cashback';

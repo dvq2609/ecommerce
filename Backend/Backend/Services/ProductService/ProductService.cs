@@ -42,6 +42,18 @@ namespace Backend.Services.ProductService
             return product == null ? null : MapToDto(product);
         }
 
+        public async Task<ProductDetailResponseDto?> GetDetailByIdAsync(int id)
+        {
+            var product = await _productRepo.GetDetailByIdAsync(id);
+            return product == null ? null : MapToDetailDto(product);
+        }
+
+        public async Task<ProductDetailResponseDto?> GetDetailBySlugAsync(string slug)
+        {
+            var product = await _productRepo.GetDetailBySlugAsync(slug);
+            return product == null ? null : MapToDetailDto(product);
+        }
+
         public async Task<(bool Success, string? Error, ProductResponseDto? Data)> CreateAsync(CreateProductDto dto)
         {
             var slug = string.IsNullOrWhiteSpace(dto.Slug)
@@ -51,6 +63,11 @@ namespace Backend.Services.ProductService
             if (await _productRepo.SlugExistsAsync(slug))
                 return (false, $"Slug '{slug}' đã tồn tại.", null);
 
+            // Tự động tính tổng tồn kho từ các biến thể nếu có
+            var totalStock = dto.Variants.Count > 0 
+                ? dto.Variants.Sum(v => v.StockQuantity) 
+                : dto.StockQuantity;
+
             var product = new Product
             {
                 CategoryId         = dto.CategoryId,
@@ -59,42 +76,46 @@ namespace Backend.Services.ProductService
                 ProductDescription = dto.ProductDescription?.Trim() ?? string.Empty,
                 Slug               = slug,
                 Price              = dto.Price,
-                StockQuantity      = dto.StockQuantity,
+                StockQuantity      = totalStock,
                 IsActive           = dto.IsActive,
-                ImportDate         = dto.ImportDate ?? DateTime.UtcNow
+                ImportDate         = dto.ImportDate ?? DateTime.UtcNow,
+                Material           = dto.Material?.Trim() ?? string.Empty,
+                Origin             = dto.Origin?.Trim() ?? string.Empty,
+                Style              = dto.Style?.Trim() ?? string.Empty,
+                Fit                = dto.Fit?.Trim() ?? string.Empty,
+                CareInstructions   = dto.CareInstructions?.Trim() ?? string.Empty,
+                AverageRating      = 5.0m,
+                RatingCount        = 0
             };
 
-            var created = await _productRepo.CreateAsync(product);
-
-            // Add images if provided
-            if (dto.Images.Count > 0)
+            // Chuẩn bị biến thể
+            var variants = dto.Variants.Select(v => new ProductVariant
             {
-                var images = dto.Images.Select((img, idx) => new ProductImage
-                {
-                    ProductId    = created.ProductId,
-                    ImageUrl     = img.ImageUrl.Trim(),
-                    IsPrimary    = img.IsPrimary || idx == 0, // first is primary if none flagged
-                    DisplayOrder = img.DisplayOrder > 0 ? img.DisplayOrder : idx
-                }).ToList();
+                ColorId       = v.ColorId,
+                SizeId        = v.SizeId,
+                Price         = v.Price > 0 ? v.Price : dto.Price,
+                StockQuantity = v.StockQuantity,
+                IsActive      = v.IsActive,
+                Sku           = !string.IsNullOrWhiteSpace(v.Sku) 
+                    ? v.Sku.Trim() 
+                    : $"{slug}-{v.ColorId}-{v.SizeId}"
+            }).ToList();
 
-                // Ensure only 1 primary
-                var hasPrimary = images.Any(i => i.IsPrimary);
-                if (!hasPrimary) images[0].IsPrimary = true;
-                if (images.Count(i => i.IsPrimary) > 1)
-                {
-                    // Keep only first primary
-                    var firstPrimary = true;
-                    foreach (var img in images)
-                    {
-                        if (img.IsPrimary && firstPrimary) { firstPrimary = false; }
-                        else { img.IsPrimary = false; }
-                    }
-                }
+            // Chuẩn bị hình ảnh
+            var images = dto.Images.Select((img, idx) => new ProductImage
+            {
+                ImageUrl     = img.ImageUrl.Trim(),
+                ColorId      = img.ColorId,
+                IsPrimary    = img.IsPrimary || idx == 0,
+                DisplayOrder = img.DisplayOrder > 0 ? img.DisplayOrder : idx
+            }).ToList();
 
-                await _productRepo.AddImagesAsync(images);
-                created.Images = images;
+            if (images.Count > 0 && !images.Any(i => i.IsPrimary))
+            {
+                images[0].IsPrimary = true;
             }
 
+            var created = await _productRepo.CreateWithVariantsAsync(product, variants, images);
             return (true, null, MapToDto(created));
         }
 
@@ -112,6 +133,11 @@ namespace Backend.Services.ProductService
             if (dto.StockQuantity.HasValue) product.StockQuantity    = dto.StockQuantity.Value;
             if (dto.IsActive.HasValue)    product.IsActive           = dto.IsActive.Value;
             if (dto.ImportDate.HasValue)  product.ImportDate         = dto.ImportDate.Value;
+            if (dto.Material != null)     product.Material           = dto.Material.Trim();
+            if (dto.Origin != null)       product.Origin             = dto.Origin.Trim();
+            if (dto.Style != null)        product.Style              = dto.Style.Trim();
+            if (dto.Fit != null)          product.Fit                = dto.Fit.Trim();
+            if (dto.CareInstructions != null) product.CareInstructions = dto.CareInstructions.Trim();
 
             if (!string.IsNullOrWhiteSpace(dto.Slug))
             {
@@ -135,6 +161,28 @@ namespace Backend.Services.ProductService
             return (true, null);
         }
 
+        public async Task<List<ProductVariantDto>> GetVariantsByProductIdAsync(int productId)
+        {
+            var variants = await _productRepo.GetVariantsByProductIdAsync(productId);
+            return variants.Select(MapVariantToDto).ToList();
+        }
+
+        public async Task<(bool Success, string? Error, ProductVariantDto? Data)> UpdateVariantAsync(int variantId, UpdateProductVariantDto dto)
+        {
+            var variant = await _productRepo.GetVariantByIdAsync(variantId);
+            if (variant == null)
+                return (false, "Không tìm thấy biến thể.", null);
+
+            if (dto.Price.HasValue) variant.Price = dto.Price.Value;
+            if (dto.StockQuantity.HasValue) variant.StockQuantity = dto.StockQuantity.Value;
+            if (dto.IsActive.HasValue) variant.IsActive = dto.IsActive.Value;
+            if (!string.IsNullOrWhiteSpace(dto.Sku)) variant.Sku = dto.Sku.Trim();
+            variant.UpdatedAt = DateTime.UtcNow;
+
+            await _productRepo.UpdateAsync(variant.Product);
+            return (true, null, MapVariantToDto(variant));
+        }
+
         public async Task<(bool Success, string? Error)> AddImagesAsync(int productId, List<ProductImageInputDto> images)
         {
             var product = await _productRepo.GetByIdAsync(productId);
@@ -145,6 +193,7 @@ namespace Backend.Services.ProductService
             {
                 ProductId    = productId,
                 ImageUrl     = img.ImageUrl.Trim(),
+                ColorId      = img.ColorId,
                 IsPrimary    = img.IsPrimary,
                 DisplayOrder = img.DisplayOrder > 0 ? img.DisplayOrder : idx
             }).ToList();
@@ -181,6 +230,22 @@ namespace Backend.Services.ProductService
 
         // ─── Helpers ─────────────────────────────────────────────────────────────
 
+        private static ProductVariantDto MapVariantToDto(ProductVariant v) => new()
+        {
+            VariantId       = v.VariantId,
+            ProductId       = v.ProductId,
+            ColorId         = v.ColorId,
+            ColorName       = v.Color?.ColorName ?? string.Empty,
+            HexCode         = v.Color?.HexCode ?? string.Empty,
+            SizeId          = v.SizeId,
+            SizeName        = v.Size?.SizeName ?? string.Empty,
+            SizeDescription = v.Size?.Description,
+            Sku             = v.Sku,
+            Price           = v.Price,
+            StockQuantity   = v.StockQuantity,
+            IsActive        = v.IsActive
+        };
+
         private static ProductResponseDto MapToDto(Product p) => new()
         {
             ProductId          = p.ProductId,
@@ -195,14 +260,140 @@ namespace Backend.Services.ProductService
             StockQuantity      = p.StockQuantity,
             IsActive           = p.IsActive,
             ImportDate         = p.ImportDate,
+            Material           = p.Material,
+            Origin             = p.Origin,
+            Style              = p.Style,
+            Fit                = p.Fit,
+            CareInstructions   = p.CareInstructions,
+            AverageRating      = p.AverageRating,
+            RatingCount        = p.RatingCount,
             Images             = p.Images?.OrderBy(i => i.DisplayOrder).Select(i => new ProductImageResponseDto
             {
                 ProductImageId = i.ProductImageId,
                 ImageUrl       = i.ImageUrl,
+                ColorId        = i.ColorId,
+                ColorName      = i.Color?.ColorName,
                 IsPrimary      = i.IsPrimary,
                 DisplayOrder   = i.DisplayOrder
-            }).ToList() ?? new()
+            }).ToList() ?? new(),
+            Variants           = p.Variants?.Select(MapVariantToDto).ToList() ?? new()
         };
+
+        private static ProductDetailResponseDto MapToDetailDto(Product p)
+        {
+            var sortedImages = p.Images?.OrderBy(i => i.DisplayOrder).ToList() ?? new List<ProductImage>();
+
+            // Gom nhóm Colors duy nhất từ Variants
+            var colorMap = new Dictionary<int, ProductDetailColorDto>();
+            foreach (var v in p.Variants)
+            {
+                if (v.Color != null && !colorMap.ContainsKey(v.ColorId))
+                {
+                    // Tìm index ảnh đầu tiên trong mảng ảnh có ColorId tương ứng
+                    var matchedImgIdx = sortedImages.FindIndex(img => img.ColorId == v.ColorId);
+
+                    colorMap[v.ColorId] = new ProductDetailColorDto
+                    {
+                        Id         = v.ColorId,
+                        Name       = v.Color.ColorName,
+                        Hex        = v.Color.HexCode,
+                        ImageIndex = matchedImgIdx >= 0 ? matchedImgIdx : null
+                    };
+                }
+            }
+
+            // Gom nhóm Sizes duy nhất từ Variants
+            var sizeMap = new Dictionary<int, ProductDetailSizeDto>();
+            foreach (var v in p.Variants.OrderBy(v => v.Size?.DisplayOrder ?? 0))
+            {
+                if (v.Size != null)
+                {
+                    if (!sizeMap.TryGetValue(v.SizeId, out var existing))
+                    {
+                        sizeMap[v.SizeId] = new ProductDetailSizeDto
+                        {
+                            Id          = v.SizeId,
+                            Name        = v.Size.SizeName,
+                            Description = v.Size.Description,
+                            InStock     = v.StockQuantity > 0
+                        };
+                    }
+                    else if (v.StockQuantity > 0)
+                    {
+                        existing.InStock = true; // Chỉ cần 1 màu còn size này thì InStock = true
+                    }
+                }
+            }
+
+            // Danh sách Specs
+            var specs = new List<ProductSpecItemDto>();
+            if (!string.IsNullOrWhiteSpace(p.Material))
+                specs.Add(new ProductSpecItemDto { Label = "Chất liệu", Value = p.Material });
+            if (!string.IsNullOrWhiteSpace(p.Origin))
+                specs.Add(new ProductSpecItemDto { Label = "Xuất xứ", Value = p.Origin });
+            if (!string.IsNullOrWhiteSpace(p.Style))
+                specs.Add(new ProductSpecItemDto { Label = "Phong cách", Value = p.Style });
+            if (!string.IsNullOrWhiteSpace(p.Fit))
+                specs.Add(new ProductSpecItemDto { Label = "Kiểu dáng", Value = p.Fit });
+            if (!string.IsNullOrWhiteSpace(p.CareInstructions))
+                specs.Add(new ProductSpecItemDto { Label = "Chăm sóc vải", Value = p.CareInstructions });
+
+            // Danh sách Reviews
+            var reviews = p.Reviews?.OrderByDescending(r => r.CreatedAt).Select(r => new ReviewResponseDto
+            {
+                Id                 = r.ReviewId,
+                UserName           = !string.IsNullOrWhiteSpace(r.User?.FullName) ? r.User.FullName : (r.User?.Email ?? "Khách hàng"),
+                AvatarLetter       = (!string.IsNullOrWhiteSpace(r.User?.FullName) ? r.User.FullName : (r.User?.Email ?? "K")).Substring(0, 1).ToUpper(),
+                Rating             = r.Rating,
+                TimeAgo            = CalculateTimeAgo(r.CreatedAt),
+                VariantInfo        = r.ProductVariant != null 
+                    ? $"{r.ProductVariant.Color?.ColorName} • Size {r.ProductVariant.Size?.SizeName}" 
+                    : "Mặc định",
+                Comment            = r.Comment,
+                IsVerifiedPurchase = true,
+                CreatedAt          = r.CreatedAt
+            }).ToList() ?? new();
+
+            return new ProductDetailResponseDto
+            {
+                ProductId          = p.ProductId,
+                Sku                = p.Variants?.FirstOrDefault()?.Sku ?? $"VIBE-{p.ProductId:D4}",
+                Title              = p.ProductName,
+                Slug               = p.Slug,
+                CategoryId         = p.CategoryId,
+                CategoryName       = p.Category?.CategoryName ?? string.Empty,
+                BrandId            = p.BrandId,
+                BrandName          = p.Brand?.BrandName ?? string.Empty,
+                Price              = p.Price,
+                StockQuantity      = p.Variants != null && p.Variants.Count > 0 ? p.Variants.Sum(v => v.StockQuantity) : p.StockQuantity,
+                AverageRating      = p.AverageRating,
+                RatingCount        = p.RatingCount,
+                DescriptionText    = p.ProductDescription,
+                Images             = sortedImages.Select(i => new ProductImageResponseDto
+                {
+                    ProductImageId = i.ProductImageId,
+                    ImageUrl       = i.ImageUrl,
+                    ColorId        = i.ColorId,
+                    ColorName      = i.Color?.ColorName,
+                    IsPrimary      = i.IsPrimary,
+                    DisplayOrder   = i.DisplayOrder
+                }).ToList(),
+                Colors             = colorMap.Values.ToList(),
+                Sizes              = sizeMap.Values.ToList(),
+                Variants           = p.Variants?.Select(MapVariantToDto).ToList() ?? new(),
+                Specs              = specs,
+                Reviews            = reviews
+            };
+        }
+
+        private static string CalculateTimeAgo(DateTime dt)
+        {
+            var span = DateTime.UtcNow - dt;
+            if (span.TotalDays > 30) return dt.ToString("dd/MM/yyyy");
+            if (span.TotalDays >= 1) return $"{(int)span.TotalDays} ngày trước";
+            if (span.TotalHours >= 1) return $"{(int)span.TotalHours} giờ trước";
+            return "Vừa xong";
+        }
 
         private static string GenerateSlug(string input)
         {

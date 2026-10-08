@@ -37,6 +37,19 @@ namespace Backend.Controllers
             return Ok(new { success = true, data = product });
         }
 
+        /// <summary>
+        /// Lấy chi tiết sản phẩm theo ID (kèm thông số vải, cây phân loại màu/size, reviews và tồn kho từng biến thể cho UI).
+        /// </summary>
+        [HttpGet("{id:int}/detail")]
+        public async Task<IActionResult> GetDetailById(int id)
+        {
+            var product = await _productService.GetDetailByIdAsync(id);
+            if (product == null)
+                return NotFound(new { success = false, message = "Không tìm thấy sản phẩm." });
+
+            return Ok(new { success = true, data = product });
+        }
+
         /// <summary>Lấy sản phẩm theo slug.</summary>
         [HttpGet("slug/{slug}")]
         public async Task<IActionResult> GetBySlug(string slug)
@@ -46,6 +59,39 @@ namespace Backend.Controllers
                 return NotFound(new { success = false, message = "Không tìm thấy sản phẩm." });
 
             return Ok(new { success = true, data = product });
+        }
+
+        /// <summary>
+        /// Lấy chi tiết sản phẩm theo Slug (kèm thông số vải, cây phân loại màu/size, reviews và tồn kho từng biến thể cho UI).
+        /// </summary>
+        [HttpGet("slug/{slug}/detail")]
+        public async Task<IActionResult> GetDetailBySlug(string slug)
+        {
+            var product = await _productService.GetDetailBySlugAsync(slug);
+            if (product == null)
+                return NotFound(new { success = false, message = "Không tìm thấy sản phẩm." });
+
+            return Ok(new { success = true, data = product });
+        }
+
+        /// <summary>Lấy danh sách biến thể của sản phẩm.</summary>
+        [HttpGet("{id:int}/variants")]
+        public async Task<IActionResult> GetVariants(int id)
+        {
+            var variants = await _productService.GetVariantsByProductIdAsync(id);
+            return Ok(new { success = true, data = variants });
+        }
+
+        /// <summary>Cập nhật giá và tồn kho của 1 biến thể (Admin only).</summary>
+        [HttpPatch("variants/{variantId:int}")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> UpdateVariant(int variantId, [FromBody] UpdateProductVariantDto dto)
+        {
+            var (success, error, data) = await _productService.UpdateVariantAsync(variantId, dto);
+            if (!success)
+                return BadRequest(new { success = false, message = error });
+
+            return Ok(new { success = true, message = "Cập nhật biến thể thành công.", data });
         }
 
         /// <summary>Tạo sản phẩm mới (Admin only).</summary>

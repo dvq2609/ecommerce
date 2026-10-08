@@ -79,6 +79,50 @@ namespace Backend.Repositories.ProductRepo
                 .FirstOrDefaultAsync(p => p.Slug == slug);
         }
 
+        public async Task<Product?> GetDetailByIdAsync(int id)
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Images.OrderBy(i => i.DisplayOrder))
+                    .ThenInclude(img => img.Color)
+                .Include(p => p.Variants.Where(v => v.IsActive))
+                    .ThenInclude(v => v.Color)
+                .Include(p => p.Variants.Where(v => v.IsActive))
+                    .ThenInclude(v => v.Size)
+                .Include(p => p.Reviews)
+                    .ThenInclude(r => r.User)
+                .Include(p => p.Reviews)
+                    .ThenInclude(r => r.ProductVariant)
+                        .ThenInclude(pv => pv!.Color)
+                .Include(p => p.Reviews)
+                    .ThenInclude(r => r.ProductVariant)
+                        .ThenInclude(pv => pv!.Size)
+                .FirstOrDefaultAsync(p => p.ProductId == id);
+        }
+
+        public async Task<Product?> GetDetailBySlugAsync(string slug)
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Images.OrderBy(i => i.DisplayOrder))
+                    .ThenInclude(img => img.Color)
+                .Include(p => p.Variants.Where(v => v.IsActive))
+                    .ThenInclude(v => v.Color)
+                .Include(p => p.Variants.Where(v => v.IsActive))
+                    .ThenInclude(v => v.Size)
+                .Include(p => p.Reviews)
+                    .ThenInclude(r => r.User)
+                .Include(p => p.Reviews)
+                    .ThenInclude(r => r.ProductVariant)
+                        .ThenInclude(pv => pv!.Color)
+                .Include(p => p.Reviews)
+                    .ThenInclude(r => r.ProductVariant)
+                        .ThenInclude(pv => pv!.Size)
+                .FirstOrDefaultAsync(p => p.Slug == slug);
+        }
+
         public async Task<bool> SlugExistsAsync(string slug, int? excludeId = null)
         {
             return await _context.Products.AnyAsync(p =>
@@ -90,6 +134,64 @@ namespace Backend.Repositories.ProductRepo
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
             return product;
+        }
+
+        public async Task<Product> CreateWithVariantsAsync(Product product, List<ProductVariant> variants, List<ProductImage> images)
+        {
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.Products.Add(product);
+                await _context.SaveChangesAsync();
+
+                if (variants.Count > 0)
+                {
+                    foreach (var variant in variants)
+                    {
+                        variant.ProductId = product.ProductId;
+                    }
+                    _context.ProductVariants.AddRange(variants);
+                }
+
+                if (images.Count > 0)
+                {
+                    foreach (var img in images)
+                    {
+                        img.ProductId = product.ProductId;
+                    }
+                    _context.ProductImages.AddRange(images);
+                }
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                product.Variants = variants;
+                product.Images = images;
+                return product;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<List<ProductVariant>> GetVariantsByProductIdAsync(int productId)
+        {
+            return await _context.ProductVariants
+                .Include(pv => pv.Color)
+                .Include(pv => pv.Size)
+                .Where(pv => pv.ProductId == productId)
+                .ToListAsync();
+        }
+
+        public async Task<ProductVariant?> GetVariantByIdAsync(int variantId)
+        {
+            return await _context.ProductVariants
+                .Include(pv => pv.Color)
+                .Include(pv => pv.Size)
+                .Include(pv => pv.Product)
+                .FirstOrDefaultAsync(pv => pv.VariantId == variantId);
         }
 
         public async Task<Product> UpdateAsync(Product product)

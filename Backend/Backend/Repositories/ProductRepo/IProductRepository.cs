@@ -8,10 +8,17 @@ namespace Backend.Repositories.ProductRepo
         Task<(List<Product> Items, int TotalCount)> GetPagedAsync(ProductQueryDto query);
         Task<Product?> GetByIdAsync(int id);
         Task<Product?> GetBySlugAsync(string slug);
+        Task<Product?> GetDetailByIdAsync(int id);
+        Task<Product?> GetDetailBySlugAsync(string slug);
         Task<bool> SlugExistsAsync(string slug, int? excludeId = null);
         Task<Product> CreateAsync(Product product);
+        Task<Product> CreateWithVariantsAsync(Product product, List<ProductVariant> variants, List<ProductImage> images);
         Task<Product> UpdateAsync(Product product);
         Task<bool> DeleteAsync(int id);
+
+        // Variant management
+        Task<List<ProductVariant>> GetVariantsByProductIdAsync(int productId);
+        Task<ProductVariant?> GetVariantByIdAsync(int variantId);
 
         // Image management
         Task AddImagesAsync(List<ProductImage> images);

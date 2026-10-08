@@ -9,14 +9,20 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { AddProductPage } from './pages/AddProductPage';
 import { ColorsManagePage } from './pages/ColorsManagePage';
 import { SizesManagePage } from './pages/SizesManagePage';
+import { CartPage } from './pages/CartPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { CartProvider } from './context/CartContext';
+import { CartDrawer } from './components/cart/CartDrawer';
 
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <Routes>
+      <CartProvider>
+        <CartDrawer />
+        <Routes>
         {/* Public Storefront Routes */}
         <Route path="/" element={<HomePage />} />
+        <Route path="/cart" element={<CartPage />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
         <Route path="/product" element={<ProductDetailPage />} />
 
@@ -63,7 +69,8 @@ export const App: React.FC = () => {
         {/* Fallback to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </CartProvider>
+  </BrowserRouter>
   );
 };
 

@@ -35,12 +35,6 @@ const DEFAULT_GUARANTEES = [
   },
 ];
 
-const DEFAULT_VOUCHERS = [
-  { id: 'v-1', text: 'Giảm 50k', type: 'discount' as const },
-  { id: 'v-2', text: 'Freeship Extra', type: 'shipping' as const },
-  { id: 'v-3', text: 'Hoàn 10% Xu', type: 'cashback' as const },
-];
-
 const DEFAULT_REVIEWS_DISTRIBUTION = [
   { stars: 5, percentage: 88 },
   { stars: 4, percentage: 8 },
@@ -145,22 +139,22 @@ export const productService = {
     const colors: ProductVariantColor[] =
       d.colors && d.colors.length > 0
         ? d.colors.map((c: any) => ({
-            id: c.id?.toString() || '',
-            name: c.name || '',
-            hex: c.hex || '#000000',
-            imageIndex: c.imageIndex !== null && c.imageIndex !== undefined ? c.imageIndex : undefined,
-          }))
+          id: c.id?.toString() || '',
+          name: c.name || '',
+          hex: c.hex || '#000000',
+          imageIndex: c.imageIndex !== null && c.imageIndex !== undefined ? c.imageIndex : undefined,
+        }))
         : [];
 
     // 3. Kích thước: Ánh xạ chuẩn từ SizeDto backend
     const sizes: ProductVariantSize[] =
       d.sizes && d.sizes.length > 0
         ? d.sizes.map((s: any) => ({
-            id: s.id?.toString() || '',
-            name: s.name || '',
-            description: s.description || undefined,
-            inStock: Boolean(s.inStock),
-          }))
+          id: s.id?.toString() || '',
+          name: s.name || '',
+          description: s.description || undefined,
+          inStock: Boolean(s.inStock),
+        }))
         : [];
 
     // 4. Biến thể chi tiết (ProductVariantDto)
@@ -170,25 +164,25 @@ export const productService = {
     const specs: ProductSpecItem[] =
       d.specs && d.specs.length > 0
         ? d.specs.map((sp: any) => ({
-            label: sp.label || '',
-            value: sp.value || '',
-          }))
+          label: sp.label || '',
+          value: sp.value || '',
+        }))
         : [];
 
     // 6. Đánh giá người dùng (ReviewResponseDto)
     const reviews: ProductReviewItem[] =
       d.reviews && d.reviews.length > 0
         ? d.reviews.map((r: any) => ({
-            id: r.id?.toString() || `rev-${Math.random()}`,
-            userName: r.userName || 'Khách hàng',
-            avatarLetter: r.avatarLetter || 'K',
-            rating: Number(r.rating) || 5,
-            timeAgo: r.timeAgo || 'Vừa xong',
-            variantInfo: r.variantInfo || 'Mặc định',
-            comment: r.comment || '',
-            isVerifiedPurchase: r.isVerifiedPurchase !== false,
-            userPhotos: Array.isArray(r.userPhotos) && r.userPhotos.length > 0 ? r.userPhotos : undefined,
-          }))
+          id: r.id?.toString() || `rev-${Math.random()}`,
+          userName: r.userName || 'Khách hàng',
+          avatarLetter: r.avatarLetter || 'K',
+          rating: Number(r.rating) || 5,
+          timeAgo: r.timeAgo || 'Vừa xong',
+          variantInfo: r.variantInfo || 'Mặc định',
+          comment: r.comment || '',
+          isVerifiedPurchase: r.isVerifiedPurchase !== false,
+          userPhotos: Array.isArray(r.userPhotos) && r.userPhotos.length > 0 ? r.userPhotos : undefined,
+        }))
         : [];
 
     const price = Number(d.price) || 0;
@@ -216,7 +210,7 @@ export const productService = {
       ratingCount,
       soldCountText: ratingCount > 0 ? `${ratingCount * 8}` : 'Mới ra mắt',
       satisfactionRate: '99% Hài lòng',
-      vouchers: DEFAULT_VOUCHERS,
+      vouchers: d.vouchers || [],
       images,
       colors,
       sizes,

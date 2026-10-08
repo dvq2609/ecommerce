@@ -4,12 +4,14 @@ using Backend.Repositories.UserRepo;
 using Backend.Repositories.CategoryRepo;
 using Backend.Repositories.BrandRepo;
 using Backend.Repositories.ProductRepo;
+using Backend.Repositories.CartRepo;
 using Backend.Services.EmailService;
 using Backend.Services.TokenService;
 using Backend.Services.UserService;
 using Backend.Services.CategoryService;
 using Backend.Services.BrandService;
 using Backend.Services.ProductService;
+using Backend.Services.CartService;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +29,7 @@ builder.Services.AddControllers();
 
 // 2. Configure Database Context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") 
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
 
 // 3. Register Repositories & Services
@@ -45,8 +47,12 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
+// Cart Management
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<ICartService, CartService>();
+
 // 4. Configure Authentication (JWT + Google OAuth 2.0)
-var jwtKey = builder.Configuration["Jwt:Key"] 
+var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key is missing in configuration.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "EcommerceBackend";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "EcommerceFrontend";

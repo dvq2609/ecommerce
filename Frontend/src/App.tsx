@@ -14,6 +14,7 @@ import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { OrdersHistoryPage } from './pages/OrdersHistoryPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CartProvider } from './context/CartContext';
 import { CartDrawer } from './components/cart/CartDrawer';
@@ -30,6 +31,7 @@ export const App: React.FC = () => {
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/order-success/:orderCode" element={<OrderSuccessPage />} />
         <Route path="/orders" element={<OrdersHistoryPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
         <Route path="/product" element={<ProductDetailPage />} />
 

@@ -252,6 +252,67 @@ namespace Backend.Controllers
             return Ok(profile);
         }
 
+        /// <summary>
+        /// Cập nhật thông tin cá nhân của người dùng hiện tại
+        /// </summary>
+        [HttpPut("me")]
+        [Authorize]
+        [ProducesResponseType(typeof(UserMeResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> UpdateCurrentUser([FromBody] UpdateProfileRequestDto request, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                              ?? User.FindFirst("UserId")?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { message = "Token không hợp lệ hoặc thiếu thông tin người dùng." });
+            }
+
+            var result = await _userService.UpdateProfileAsync(userId, request, cancellationToken);
+            return result.Outcome switch
+            {
+                UpdateProfileOutcome.Success => Ok(new { success = true, message = "Cập nhật thông tin thành công.", data = result.Profile }),
+                UpdateProfileOutcome.PhoneNumberAlreadyExists => BadRequest(new { success = false, message = "Số điện thoại này đã được sử dụng bởi tài khoản khác." }),
+                UpdateProfileOutcome.UserNotFound => NotFound(new { success = false, message = "Không tìm thấy người dùng." }),
+                _ => BadRequest(new { success = false, message = "Cập nhật hồ sơ thất bại." })
+            };
+        }
+
+        /// <summary>
+        /// Đổi mật khẩu tài khoản của người dùng hiện tại
+        /// </summary>
+        [HttpPut("change-password")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                              ?? User.FindFirst("UserId")?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { message = "Token không hợp lệ hoặc thiếu thông tin người dùng." });
+            }
+
+            var result = await _userService.ChangePasswordAsync(userId, request, cancellationToken);
+            return result.Outcome switch
+            {
+                ChangePasswordOutcome.Success => Ok(new { success = true, message = "Đổi mật khẩu thành công!" }),
+                ChangePasswordOutcome.WrongCurrentPassword => BadRequest(new { success = false, message = "Mật khẩu hiện tại không chính xác." }),
+                ChangePasswordOutcome.GoogleAccount => BadRequest(new { success = false, message = "Tài khoản đăng nhập qua Google không thể đổi mật khẩu qua hình thức này." }),
+                ChangePasswordOutcome.UserNotFound => NotFound(new { success = false, message = "Không tìm thấy người dùng." }),
+                _ => BadRequest(new { success = false, message = "Đổi mật khẩu thất bại." })
+            };
+        }
+
         private string? GetIpAddress()
         {
             if (Request.Headers.ContainsKey("X-Forwarded-For"))

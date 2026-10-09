@@ -14,5 +14,7 @@ namespace Backend.Services.UserService
         Task<(bool Success, string Message)> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default);
         Task<(bool Success, string Message)> ResetPasswordAsync(ResetPasswordDto request, CancellationToken cancellationToken = default);
         Task<UserMeResponseDto?> GetUserProfileAsync(int userId, CancellationToken cancellationToken = default);
+        Task<UpdateProfileResult> UpdateProfileAsync(int userId, UpdateProfileRequestDto request, CancellationToken cancellationToken = default);
+        Task<ChangePasswordResult> ChangePasswordAsync(int userId, ChangePasswordRequestDto request, CancellationToken cancellationToken = default);
     }
 }

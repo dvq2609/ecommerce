@@ -8,6 +8,7 @@ using Backend.Repositories.CartRepo;
 using Backend.Repositories.OrderRepo;
 using Backend.Repositories.ShippingRepo;
 using Backend.Repositories.AddressRepo;
+using Backend.Repositories.PaymentRepo;
 using Backend.Services.EmailService;
 using Backend.Services.TokenService;
 using Backend.Services.UserService;
@@ -18,6 +19,7 @@ using Backend.Services.CartService;
 using Backend.Services.OrderService;
 using Backend.Services.ShippingService;
 using Backend.Services.AddressService;
+using Backend.Services.PaymentService;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +34,7 @@ builder.Configuration.AddEnvironmentVariables();
 
 // 1. Add Controllers
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 
 // 2. Configure Database Context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -68,6 +71,10 @@ builder.Services.AddScoped<IShippingService, ShippingService>();
 // Address Management
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IAddressService, AddressService>();
+
+// Payment Management (VietQR & Webhook)
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // 4. Configure Authentication (JWT + Google OAuth 2.0)
 var jwtKey = builder.Configuration["Jwt:Key"]

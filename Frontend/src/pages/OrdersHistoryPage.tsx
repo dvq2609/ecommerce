@@ -229,6 +229,18 @@ export const OrdersHistoryPage: React.FC = () => {
                     </div>
 
                     <div style={styles.orderMetaRight}>
+                      {order.paymentMethod === 3 && (
+                        <span
+                          style={{
+                            ...styles.statusBadge,
+                            color: order.paymentStatus === 1 ? '#15803d' : '#a21caf',
+                            backgroundColor: order.paymentStatus === 1 ? '#dcfce7' : '#fdf2f8',
+                            border: order.paymentStatus === 1 ? '1px solid #bbf7d0' : '1px solid #fbcfe8',
+                          }}
+                        >
+                          {order.paymentStatus === 1 ? '● Đã thanh toán MoMo' : '⏳ Chờ thanh toán MoMo'}
+                        </span>
+                      )}
                       <span
                         style={{
                           ...styles.statusBadge,
@@ -395,6 +407,14 @@ export const OrdersHistoryPage: React.FC = () => {
                   <span style={styles.infoLabel}>Phương thức:</span>
                   <strong>{paymentMethodLabel[selectedOrder.paymentMethod]}</strong>
                 </div>
+                {selectedOrder.paymentMethod === 3 && (
+                  <div style={styles.infoRow}>
+                    <span style={styles.infoLabel}>Trạng thái TT:</span>
+                    <strong style={{ color: selectedOrder.paymentStatus === 1 ? '#15803d' : '#a21caf' }}>
+                      {selectedOrder.paymentStatus === 1 ? 'Đã thanh toán qua MoMo' : 'Đang chờ thanh toán MoMo'}
+                    </strong>
+                  </div>
+                )}
                 <div style={styles.infoRow}>
                   <span style={styles.infoLabel}>Tạm tính:</span>
                   <span>{formatPrice(selectedOrder.totalAmount)}</span>
@@ -418,13 +438,13 @@ export const OrdersHistoryPage: React.FC = () => {
             </div>
 
             <div style={styles.modalFooter}>
-              {selectedOrder.paymentMethod === 1 && (
+              {selectedOrder.paymentMethod === 3 && selectedOrder.paymentStatus === 0 && (
                 <Link
                   to={`/order-success/${selectedOrder.orderCode}`}
                   style={styles.modalQrBtn}
                   onClick={() => setSelectedOrder(null)}
                 >
-                  Xem mã QR thanh toán
+                  Thanh toán MoMo ngay
                 </Link>
               )}
               <button

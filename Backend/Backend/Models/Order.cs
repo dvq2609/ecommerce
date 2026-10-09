@@ -73,5 +73,6 @@ namespace Backend.Models
         // Navigation properties
         public virtual User User { get; set; } = null!;
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
     }
 }

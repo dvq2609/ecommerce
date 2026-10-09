@@ -14,6 +14,7 @@ import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { OrdersHistoryPage } from './pages/OrdersHistoryPage';
+import { MoMoCallbackPage } from './pages/MoMoCallbackPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CartProvider } from './context/CartContext';
@@ -30,6 +31,7 @@ export const App: React.FC = () => {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/order-success/:orderCode" element={<OrderSuccessPage />} />
+        <Route path="/momo-callback" element={<MoMoCallbackPage />} />
         <Route path="/orders" element={<OrdersHistoryPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />

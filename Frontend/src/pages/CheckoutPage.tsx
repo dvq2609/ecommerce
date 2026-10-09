@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { authService } from '../services/authService';
 import { orderService } from '../services/orderService';
+import { paymentService } from '../services/paymentService';
 import { shippingService } from '../services/shippingService';
 import { userService } from '../services/userService';
 import { HomeHeader } from '../components/home/HomeHeader';
@@ -34,10 +35,10 @@ const PAYMENT_OPTIONS = [
     desc: 'Trả tiền mặt khi nhận được hàng',
   },
   {
-    value: 1,
-    icon: '🏦',
-    label: 'Chuyển khoản ngân hàng (VietQR)',
-    desc: 'QR Code ngân hàng — thanh toán nhanh',
+    value: 3,
+    icon: '👛',
+    label: 'Ví điện tử MoMo',
+    desc: 'Thanh toán trực tiếp qua cổng MoMo (QR/App)',
   },
 ] as const;
 
@@ -66,7 +67,7 @@ export const CheckoutPage: React.FC = () => {
     recipientPhone: '',
     shippingAddress: '',
     note: '',
-    paymentMethod: 0 as 0 | 1,
+    paymentMethod: 0 as 0 | 1 | 2 | 3,
     saveToProfile: true,
   });
 
@@ -223,6 +224,20 @@ export const CheckoutPage: React.FC = () => {
         if (!buyNowItem) {
           await refreshCart();
         }
+
+        // Nếu khách chọn Ví MoMo -> Tạo phiên thanh toán và chuyển hướng sang MoMo
+        if (payload.paymentMethod === 3) {
+          try {
+            const momoRes = await paymentService.createMoMoPayment(res.data.orderCode);
+            if (momoRes.success && momoRes.payUrl) {
+              window.location.href = momoRes.payUrl;
+              return;
+            }
+          } catch (momoErr) {
+            console.error('Không thể tạo phiên MoMo:', momoErr);
+          }
+        }
+
         navigate(`/order-success/${res.data.orderCode}`, { replace: true });
       } else {
         setApiError(res.message ?? 'Đặt hàng thất bại. Vui lòng thử lại.');

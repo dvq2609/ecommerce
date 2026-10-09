@@ -31,6 +31,9 @@ namespace Backend.Models.DTOs
         public string? PhoneNumber { get; set; }
 
         public string? Address { get; set; }
+
+        [MaxLength(256)]
+        public string? ImageUrl { get; set; }
     }
     public sealed class ChangePasswordRequestDto
     {

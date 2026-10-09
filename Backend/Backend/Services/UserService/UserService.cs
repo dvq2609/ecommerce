@@ -463,6 +463,90 @@ namespace Backend.Services.UserService
             };
         }
 
+        public async Task<UpdateProfileResult> UpdateProfileAsync(
+            int userId,
+            UpdateProfileRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId, cancellationToken);
+            if (user == null)
+            {
+                return new UpdateProfileResult(UpdateProfileOutcome.UserNotFound);
+            }
+
+            // Kiểm tra trùng SĐT nếu thay đổi
+            if (!string.IsNullOrWhiteSpace(request.PhoneNumber) && request.PhoneNumber != user.PhoneNumber)
+            {
+                var existingPhoneUser = await _userRepository.GetUserByPhoneNumberAsync(request.PhoneNumber, cancellationToken);
+                if (existingPhoneUser != null && existingPhoneUser.UserId != userId)
+                {
+                    return new UpdateProfileResult(UpdateProfileOutcome.PhoneNumberAlreadyExists);
+                }
+            }
+
+            user.FullName = request.FullName.Trim();
+            user.PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
+            user.Address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim();
+            if (!string.IsNullOrWhiteSpace(request.ImageUrl))
+            {
+                user.ImageUrl = request.ImageUrl.Trim();
+            }
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateUserAsync(user, cancellationToken);
+
+            var profile = new UserMeResponseDto
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role?.RoleName ?? "buyer",
+                Status = user.Status,
+                IsLocked = user.IsLocked,
+                ImageUrl = user.ImageUrl,
+                Address = user.Address,
+                HasPassword = !string.IsNullOrEmpty(user.PasswordHash),
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
+            };
+
+            return new UpdateProfileResult(UpdateProfileOutcome.Success, profile);
+        }
+
+        public async Task<ChangePasswordResult> ChangePasswordAsync(
+            int userId,
+            ChangePasswordRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId, cancellationToken);
+            if (user == null)
+            {
+                return new ChangePasswordResult(ChangePasswordOutcome.UserNotFound);
+            }
+
+            if (string.IsNullOrEmpty(user.PasswordHash))
+            {
+                return new ChangePasswordResult(ChangePasswordOutcome.GoogleAccount);
+            }
+
+            if (string.IsNullOrEmpty(request.CurrentPassword) ||
+                !BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            {
+                return new ChangePasswordResult(ChangePasswordOutcome.WrongCurrentPassword);
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateUserAsync(user, cancellationToken);
+
+            // Thu hồi refresh tokens cũ ngoại trừ session hiện tại (nếu cần)
+            await _userRepository.RevokeAllUserRefreshTokensAsync(user.UserId, "System", "Đổi mật khẩu tài khoản", cancellationToken);
+
+            return new ChangePasswordResult(ChangePasswordOutcome.Success);
+        }
+
         private static string GenerateRandomToken()
         {
             return Convert.ToHexString(RandomNumberGenerator.GetBytes(32));

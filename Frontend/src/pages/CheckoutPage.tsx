@@ -4,9 +4,11 @@ import { useCart } from '../context/CartContext';
 import { authService } from '../services/authService';
 import { orderService } from '../services/orderService';
 import { shippingService } from '../services/shippingService';
+import { userService } from '../services/userService';
 import { HomeHeader } from '../components/home/HomeHeader';
 import { BottomNavBar } from '../components/home/BottomNavBar';
 import type { CreateOrderRequest } from '../types/order';
+import type { UserAddress } from '../types/user';
 
 interface BuyNowState {
   buyNowItem?: {
@@ -53,6 +55,10 @@ export const CheckoutPage: React.FC = () => {
   const [shippingFee, setShippingFee] = useState<number>(30000);
   const [estimatedDays, setEstimatedDays] = useState<string>('2 - 4 ngày');
   const [shippingRuleMatched, setShippingRuleMatched] = useState<string>('');
+
+  // Sổ địa chỉ đã lưu
+  const [savedAddresses, setSavedAddresses] = useState<UserAddress[]>([]);
+  const [showAddressPicker, setShowAddressPicker] = useState(false);
 
   // Form state
   const [form, setForm] = useState({
@@ -127,6 +133,24 @@ export const CheckoutPage: React.FC = () => {
   const progressPct = freeShippingThreshold > 0
     ? Math.min((effectiveTotalAmount / freeShippingThreshold) * 100, 100)
     : 100;
+
+  // Load Sổ địa chỉ và điền sẵn địa chỉ mặc định
+  useEffect(() => {
+    userService.getAddresses()
+      .then((res) => {
+        if (res && res.data && res.data.length > 0) {
+          setSavedAddresses(res.data);
+          const defaultAddr = res.data.find((a) => a.isDefault) || res.data[0];
+          setForm((prev) => ({
+            ...prev,
+            recipientName: defaultAddr.receiverName || prev.recipientName,
+            recipientPhone: defaultAddr.receiverPhone || prev.recipientPhone,
+            shippingAddress: defaultAddr.fullAddress || defaultAddr.streetAddress || prev.shippingAddress,
+          }));
+        }
+      })
+      .catch((err) => console.error('Lỗi tải sổ địa chỉ checkout:', err));
+  }, []);
 
   // Redirect nếu không có token
   useEffect(() => {
@@ -246,10 +270,89 @@ export const CheckoutPage: React.FC = () => {
           <form onSubmit={handleSubmit} style={styles.formCol} noValidate>
             {/* ── Section 1: Delivery Info ── */}
             <section style={styles.card}>
-              <h2 style={styles.sectionTitle}>
-                <span style={styles.sectionIcon}>📍</span>
-                Thông tin nhận hàng
-              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+                <h2 style={{ ...styles.sectionTitle, margin: 0 }}>
+                  <span style={styles.sectionIcon}>📍</span>
+                  Thông tin nhận hàng
+                </h2>
+                {savedAddresses.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddressPicker(!showAddressPicker)}
+                    style={{
+                      background: 'none',
+                      border: '1px solid #dddddd',
+                      borderRadius: 8,
+                      padding: '6px 12px',
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      color: '#ff385c',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>contacts</span>
+                    <span>{showAddressPicker ? 'Đóng sổ địa chỉ' : 'Chọn từ Sổ địa chỉ'}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Quick Address Picker List */}
+              {showAddressPicker && savedAddresses.length > 0 && (
+                <div style={{ backgroundColor: '#f9f9f9', borderRadius: 10, padding: 12, marginBottom: 16, border: '1px solid #ebebeb' }}>
+                  <p style={{ fontSize: 12.5, fontWeight: 600, color: '#717171', margin: '0 0 8px' }}>
+                    Chọn nhanh địa chỉ đã lưu của bạn:
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {savedAddresses.map((addr) => (
+                      <div
+                        key={addr.addressId}
+                        onClick={() => {
+                          setForm((prev) => ({
+                            ...prev,
+                            recipientName: addr.receiverName,
+                            recipientPhone: addr.receiverPhone,
+                            shippingAddress: addr.fullAddress || addr.streetAddress,
+                          }));
+                          setShowAddressPicker(false);
+                        }}
+                        style={{
+                          backgroundColor: '#ffffff',
+                          borderRadius: 8,
+                          border: '1px solid #dddddd',
+                          padding: '10px 14px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <strong style={{ fontSize: 13, color: '#222' }}>{addr.receiverName}</strong>
+                            <span style={{ fontSize: 12, color: '#717171' }}>• {addr.receiverPhone}</span>
+                            <span style={{ fontSize: 11, padding: '1px 6px', borderRadius: 4, backgroundColor: '#f0f0f0', color: '#555' }}>
+                              {addr.addressType}
+                            </span>
+                            {addr.isDefault && (
+                              <span style={{ fontSize: 10, color: '#ff385c', fontWeight: 700 }}>[Mặc định]</span>
+                            )}
+                          </div>
+                          <p style={{ fontSize: 12.5, color: '#444', margin: '4px 0 0' }}>
+                            {addr.fullAddress || addr.streetAddress}
+                          </p>
+                        </div>
+                        <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#ff385c' }}>
+                          check_circle
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Recipient Name */}
               <div style={styles.field}>

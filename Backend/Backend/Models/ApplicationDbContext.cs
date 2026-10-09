@@ -29,6 +29,7 @@ namespace Backend.Models
         public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
         public DbSet<ShippingSetting> ShippingSettings { get; set; } = null!;
         public DbSet<ShippingRule> ShippingRules { get; set; } = null!;
+        public DbSet<UserAddress> UserAddresses { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -188,6 +189,16 @@ namespace Backend.Models
                 .WithMany(u => u.RefreshTokens)
                 .HasForeignKey(rt => rt.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserAddress>()
+                .HasOne(ua => ua.User)
+                .WithMany(u => u.Addresses)
+                .HasForeignKey(ua => ua.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserAddress>()
+                .HasIndex(ua => ua.UserId)
+                .HasDatabaseName("IX_UserAddresses_UserId");
         }
     }
 }

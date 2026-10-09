@@ -27,6 +27,8 @@ namespace Backend.Models
         public DbSet<OrderItem> OrderItems { get; set; } = null!;
         public DbSet<Review> Reviews { get; set; } = null!;
         public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+        public DbSet<ShippingSetting> ShippingSettings { get; set; } = null!;
+        public DbSet<ShippingRule> ShippingRules { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

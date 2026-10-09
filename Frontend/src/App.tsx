@@ -9,6 +9,7 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { AddProductPage } from './pages/AddProductPage';
 import { ColorsManagePage } from './pages/ColorsManagePage';
 import { SizesManagePage } from './pages/SizesManagePage';
+import { AdminShippingPage } from './pages/AdminShippingPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
@@ -32,12 +33,20 @@ export const App: React.FC = () => {
         <Route path="/product/:id" element={<ProductDetailPage />} />
         <Route path="/product" element={<ProductDetailPage />} />
 
-        {/* ADMIN ROUTES (Admin Only: System Standard Size Guide) */}
+        {/* ADMIN ROUTES (Admin Only: System Standard Size Guide & Shipping Rules) */}
         <Route
           path="/admin/sizes"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <SizesManagePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/shipping"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminShippingPage />
             </ProtectedRoute>
           }
         />

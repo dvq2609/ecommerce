@@ -318,7 +318,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
                     )}
                   </div>
 
-                  {/* ADMIN LINKS (Admin only: System standard size guide) */}
+                  {/* ADMIN LINKS (Admin only: System standard size guide & shipping) */}
                   {(currentUser.role || '').toLowerCase() === 'admin' && (
                     <div style={{ padding: '4px 0', borderBottom: '1px solid #ebebeb' }}>
                       <Link
@@ -340,6 +340,26 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
                           straighten
                         </span>
                         <span>Quản lý Kích Cỡ (Size Guide)</span>
+                      </Link>
+                      <Link
+                        to="/admin/shipping"
+                        onClick={() => setShowUserMenu(false)}
+                        style={{
+                          width: '100%',
+                          padding: '8px 16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '13px',
+                          fontWeight: 500,
+                          color: '#222222',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ff385c' }}>
+                          local_shipping
+                        </span>
+                        <span>Quản lý Cước Vận Chuyển</span>
                       </Link>
                     </div>
                   )}

@@ -174,6 +174,65 @@ namespace Backend.Data
                     await context.SaveChangesAsync();
                 }
             }
+
+            // 4. Đảm bảo cấu hình Phí Vận Chuyển và Ngưỡng Freeship tồn tại
+            if (!await context.ShippingSettings.AnyAsync())
+            {
+                context.ShippingSettings.Add(new ShippingSetting
+                {
+                    FreeShippingThreshold = 1000000m,
+                    DefaultShippingFee = 30000m,
+                    IsFreeShippingEnabled = true,
+                    UpdatedAt = DateTime.UtcNow
+                });
+                await context.SaveChangesAsync();
+            }
+
+            // 5. Đảm bảo các tuyến vận chuyển mặc định tồn tại
+            if (!await context.ShippingRules.AnyAsync())
+            {
+                var defaultRules = new List<ShippingRule>
+                {
+                    new()
+                    {
+                        FromLocation = "TP. Hồ Chí Minh",
+                        ToLocation = "TP. Hồ Chí Minh",
+                        Fee = 20000m,
+                        EstimatedDeliveryDays = "1 - 2 ngày",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        FromLocation = "TP. Hồ Chí Minh",
+                        ToLocation = "Hà Nội",
+                        Fee = 35000m,
+                        EstimatedDeliveryDays = "2 - 4 ngày",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        FromLocation = "TP. Hồ Chí Minh",
+                        ToLocation = "Đà Nẵng",
+                        Fee = 30000m,
+                        EstimatedDeliveryDays = "2 - 3 ngày",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new()
+                    {
+                        FromLocation = "TP. Hồ Chí Minh",
+                        ToLocation = "Toàn quốc",
+                        Fee = 30000m,
+                        EstimatedDeliveryDays = "3 - 5 ngày",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                };
+                context.ShippingRules.AddRange(defaultRules);
+                await context.SaveChangesAsync();
+            }
         }
     }
 }

@@ -394,6 +394,31 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
                     type="button"
                     onClick={() => {
                       setShowUserMenu(false);
+                      navigate('/orders');
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: '13px',
+                      color: 'var(--color-on-surface)',
+                      textAlign: 'left',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ff385c' }}>
+                      receipt_long
+                    </span>
+                    Đơn mua của tôi
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowUserMenu(false);
                       navigate('/profile');
                     }}
                     style={{

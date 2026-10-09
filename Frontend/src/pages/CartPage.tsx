@@ -44,13 +44,11 @@ export const CartPage: React.FC = () => {
   const handleCheckout = () => {
     if (!currentUser) {
       if (confirm('Vui lòng đăng nhập để tiến hành thanh toán. Chuyển đến trang Đăng nhập ngay?')) {
-        navigate('/login?redirect=/cart');
+        navigate('/login?redirect=/checkout');
       }
       return;
     }
-    alert(
-      `Đang chuyển sang cổng thanh toán ShopVibe Checkout cho đơn hàng trị giá ${formatPrice(finalTotal)}...`
-    );
+    navigate('/checkout');
   };
 
   const handleClearAll = () => {

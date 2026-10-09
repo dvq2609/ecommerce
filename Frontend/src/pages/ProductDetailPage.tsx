@@ -171,8 +171,34 @@ export const ProductDetailPage: React.FC = () => {
       alert('Biến thể này hiện đã hết hàng, vui lòng chọn màu sắc hoặc kích cỡ khác!');
       return;
     }
-    handleAddToCart();
-    alert('Đang chuyển đến cổng thanh toán ShopVibe Checkout...');
+
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      if (window.confirm('Vui lòng đăng nhập để tiến hành mua hàng. Chuyển đến trang Đăng nhập ngay?')) {
+        navigate('/login?redirect=/checkout');
+      }
+      return;
+    }
+
+    const prodId = Number(product?.id) || 2;
+    const variantId = activeVariant?.variantId ? Number(activeVariant.variantId) : null;
+    const chosenColor = product?.colors.find((c) => c.id === selectedColorId)?.name || '';
+    const chosenSize = product?.sizes.find((s) => s.id === selectedSizeId)?.name || '';
+
+    navigate('/checkout', {
+      state: {
+        buyNowItem: {
+          productId: prodId,
+          productVariantId: variantId,
+          quantity: quantity,
+          title: product?.title || 'Sản phẩm ShopVibe',
+          price: currentPrice,
+          imageUrl: (product?.images && (product.images[activeImageIndex] || product.images[0])) || '',
+          colorName: chosenColor,
+          sizeName: chosenSize,
+        },
+      },
+    });
   };
 
   const handleChat = () => {

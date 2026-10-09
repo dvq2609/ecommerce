@@ -10,6 +10,9 @@ import { AddProductPage } from './pages/AddProductPage';
 import { ColorsManagePage } from './pages/ColorsManagePage';
 import { SizesManagePage } from './pages/SizesManagePage';
 import { CartPage } from './pages/CartPage';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { OrderSuccessPage } from './pages/OrderSuccessPage';
+import { OrdersHistoryPage } from './pages/OrdersHistoryPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CartProvider } from './context/CartContext';
 import { CartDrawer } from './components/cart/CartDrawer';
@@ -23,6 +26,9 @@ export const App: React.FC = () => {
         {/* Public Storefront Routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/order-success/:orderCode" element={<OrderSuccessPage />} />
+        <Route path="/orders" element={<OrdersHistoryPage />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
         <Route path="/product" element={<ProductDetailPage />} />
 

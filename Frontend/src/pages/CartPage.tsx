@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { authService } from '../services/authService';
+import { shippingService } from '../services/shippingService';
 import { HomeHeader } from '../components/home/HomeHeader';
 import { BottomNavBar } from '../components/home/BottomNavBar';
 
@@ -14,6 +15,23 @@ export const CartPage: React.FC = () => {
   const [voucherApplied, setVoucherApplied] = useState(false);
   const [voucherError, setVoucherError] = useState<string | null>(null);
 
+  // Dynamic Shipping Config
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState<number>(1000000);
+  const [defaultShippingFee, setDefaultShippingFee] = useState<number>(30000);
+  const [isFreeShippingEnabled, setIsFreeShippingEnabled] = useState<boolean>(true);
+
+  useEffect(() => {
+    shippingService.getConfig()
+      .then((res) => {
+        if (res && res.data) {
+          setFreeShippingThreshold(res.data.freeShippingThreshold);
+          setDefaultShippingFee(res.data.defaultShippingFee);
+          setIsFreeShippingEnabled(res.data.isFreeShippingEnabled);
+        }
+      })
+      .catch((err) => console.error('Lỗi tải cấu hình shipping:', err));
+  }, []);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -21,9 +39,8 @@ export const CartPage: React.FC = () => {
     }).format(price);
   };
 
-  const freeShippingThreshold = 1000000;
-  const isFreeShipping = totalAmount >= freeShippingThreshold;
-  const shippingFee = isFreeShipping || totalAmount === 0 ? 0 : 30000;
+  const isFreeShipping = isFreeShippingEnabled && totalAmount >= freeShippingThreshold;
+  const shippingFee = isFreeShipping || totalAmount === 0 ? 0 : defaultShippingFee;
   const discountAmount = voucherApplied ? 50000 : 0;
   const finalTotal = Math.max(0, totalAmount + shippingFee - discountAmount);
 

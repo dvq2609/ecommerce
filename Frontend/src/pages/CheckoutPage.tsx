@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { authService } from '../services/authService';
 import { orderService } from '../services/orderService';
+import { shippingService } from '../services/shippingService';
 import { HomeHeader } from '../components/home/HomeHeader';
 import { BottomNavBar } from '../components/home/BottomNavBar';
 import type { CreateOrderRequest } from '../types/order';
@@ -19,10 +20,6 @@ interface BuyNowState {
     sizeName?: string;
   };
 }
-
-// ─── constants ────────────────────────────────────────────────────────────────
-const FREE_SHIP_THRESHOLD = 1000000;
-const SHIPPING_FEE = 30000;
 
 const formatPrice = (p: number) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p);
@@ -50,6 +47,12 @@ export const CheckoutPage: React.FC = () => {
 
   const { cart, totalAmount, loading: cartLoading, refreshCart } = useCart();
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
+
+  // Dynamic Shipping State
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState<number>(1000000);
+  const [shippingFee, setShippingFee] = useState<number>(30000);
+  const [estimatedDays, setEstimatedDays] = useState<string>('2 - 4 ngày');
+  const [shippingRuleMatched, setShippingRuleMatched] = useState<string>('');
 
   // Form state
   const [form, setForm] = useState({
@@ -93,9 +96,37 @@ export const CheckoutPage: React.FC = () => {
     return totalAmount;
   }, [buyNowItem, totalAmount]);
 
-  const shippingFee = effectiveTotalAmount >= FREE_SHIP_THRESHOLD || effectiveTotalAmount === 0 ? 0 : SHIPPING_FEE;
+  // Recalculate dynamic shipping fee whenever address or total changes
+  useEffect(() => {
+    let active = true;
+    const calc = async () => {
+      try {
+        const res = await shippingService.calculateFee({
+          destinationAddress: form.shippingAddress,
+          orderTotal: effectiveTotalAmount,
+        });
+        if (active && res && res.data) {
+          setShippingFee(res.data.shippingFee);
+          setFreeShippingThreshold(res.data.freeShippingThreshold);
+          setEstimatedDays(res.data.estimatedDeliveryDays);
+          setShippingRuleMatched(res.data.matchedRule);
+        }
+      } catch (err) {
+        console.error('Lỗi tính phí ship tự động:', err);
+      }
+    };
+
+    const timer = setTimeout(calc, 250);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [form.shippingAddress, effectiveTotalAmount]);
+
   const finalAmount = effectiveTotalAmount + shippingFee;
-  const progressPct = Math.min((effectiveTotalAmount / FREE_SHIP_THRESHOLD) * 100, 100);
+  const progressPct = freeShippingThreshold > 0
+    ? Math.min((effectiveTotalAmount / freeShippingThreshold) * 100, 100)
+    : 100;
 
   // Redirect nếu không có token
   useEffect(() => {
@@ -435,10 +466,10 @@ export const CheckoutPage: React.FC = () => {
               <div style={styles.divider} />
 
               {/* Free ship progress */}
-              {shippingFee > 0 && (
+              {shippingFee > 0 && freeShippingThreshold > 0 && (
                 <div style={{ marginBottom: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#6a6a6a', marginBottom: 6 }}>
-                    <span>Thêm {formatPrice(FREE_SHIP_THRESHOLD - effectiveTotalAmount)} để được miễn phí giao hàng</span>
+                    <span>Thêm {formatPrice(Math.max(0, freeShippingThreshold - effectiveTotalAmount))} để được miễn phí giao hàng</span>
                   </div>
                   <div style={styles.progressTrack}>
                     <div style={{ ...styles.progressFill, width: `${progressPct}%` }} />
@@ -458,8 +489,15 @@ export const CheckoutPage: React.FC = () => {
                   <span>{formatPrice(effectiveTotalAmount)}</span>
                 </div>
                 <div style={styles.totalRow}>
-                  <span>Phí vận chuyển</span>
-                  <span style={{ color: shippingFee === 0 ? '#00a699' : '#222' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span>Phí vận chuyển</span>
+                    {estimatedDays && (
+                      <span style={{ fontSize: 11, color: '#717171' }}>
+                        Dự kiến giao: {estimatedDays} {shippingRuleMatched ? `(${shippingRuleMatched})` : ''}
+                      </span>
+                    )}
+                  </div>
+                  <span style={{ color: shippingFee === 0 ? '#00a699' : '#222', fontWeight: 600 }}>
                     {shippingFee === 0 ? 'Miễn phí' : formatPrice(shippingFee)}
                   </span>
                 </div>

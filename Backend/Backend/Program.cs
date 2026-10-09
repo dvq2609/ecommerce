@@ -6,6 +6,7 @@ using Backend.Repositories.BrandRepo;
 using Backend.Repositories.ProductRepo;
 using Backend.Repositories.CartRepo;
 using Backend.Repositories.OrderRepo;
+using Backend.Repositories.ShippingRepo;
 using Backend.Services.EmailService;
 using Backend.Services.TokenService;
 using Backend.Services.UserService;
@@ -14,6 +15,7 @@ using Backend.Services.BrandService;
 using Backend.Services.ProductService;
 using Backend.Services.CartService;
 using Backend.Services.OrderService;
+using Backend.Services.ShippingService;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +58,10 @@ builder.Services.AddScoped<ICartService, CartService>();
 // Order Management
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+
+// Shipping Management
+builder.Services.AddScoped<IShippingRepository, ShippingRepository>();
+builder.Services.AddScoped<IShippingService, ShippingService>();
 
 // 4. Configure Authentication (JWT + Google OAuth 2.0)
 var jwtKey = builder.Configuration["Jwt:Key"]

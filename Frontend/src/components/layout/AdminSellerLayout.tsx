@@ -53,6 +53,12 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
               icon: 'straighten',
               badge: 'Chuẩn sàn',
             },
+            {
+              label: 'Cước vận chuyển (Shipping)',
+              path: '/admin/shipping',
+              icon: 'local_shipping',
+              badge: 'Freeship',
+            },
           ],
         },
       ]

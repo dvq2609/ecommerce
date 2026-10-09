@@ -5,6 +5,7 @@ using Backend.Repositories.CartRepo;
 using Backend.Repositories.OrderRepo;
 using Backend.Repositories.ProductRepo;
 using Backend.Repositories.UserRepo;
+using Backend.Services.ShippingService;
 
 namespace Backend.Services.OrderService
 {
@@ -14,6 +15,7 @@ namespace Backend.Services.OrderService
         private readonly ICartRepository _cartRepository;
         private readonly IProductRepository _productRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IShippingService _shippingService;
         private readonly ILogger<OrderService> _logger;
 
         public OrderService(
@@ -21,12 +23,14 @@ namespace Backend.Services.OrderService
             ICartRepository cartRepository,
             IProductRepository productRepository,
             IUserRepository userRepository,
+            IShippingService shippingService,
             ILogger<OrderService> logger)
         {
             _orderRepository = orderRepository;
             _cartRepository = cartRepository;
             _productRepository = productRepository;
             _userRepository = userRepository;
+            _shippingService = shippingService;
             _logger = logger;
         }
 
@@ -122,10 +126,9 @@ namespace Backend.Services.OrderService
                     });
                 }
 
-                // 3. Tính phí ship (Freeship khi >= 1.000.000₫, mặc định 30.000₫)
-                const decimal FREE_SHIP_THRESHOLD = 1000000m;
-                const decimal SHIPPING_FEE = 30000m;
-                var shippingFee = totalAmount >= FREE_SHIP_THRESHOLD ? 0m : SHIPPING_FEE;
+                // 3. Tính phí ship động theo quy tắc và ngưỡng Freeship
+                var shippingCalc = await _shippingService.CalculateShippingFeeAsync(request.ShippingAddress, totalAmount);
+                var shippingFee = shippingCalc.ShippingFee;
                 var finalAmount = totalAmount + shippingFee;
 
                 // 4. Sinh mã đơn hàng duy nhất: ORD-YYMMDD-XXXX

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { signalRService, type RealtimeNotification } from '../../services/signalRService';
 import { reviewAndNotifyService, type NotificationItem } from '../../services/reviewAndNotifyService';
 import { authService } from '../../services/authService';
@@ -15,6 +16,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ buttonStyle,
   const [loading, setLoading] = useState<boolean>(false);
   const [toastNotification, setToastNotification] = useState<RealtimeNotification | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Khởi tạo kết nối SignalR & Tải số lượng ban đầu
   useEffect(() => {
@@ -110,6 +112,17 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ buttonStyle,
     setUnreadCount(0);
   };
 
+  const handleItemClick = async (targetUrl?: string, notificationId?: number, isRead?: boolean) => {
+    if (notificationId && !isRead) {
+      await handleMarkAsRead(notificationId);
+    }
+    setIsOpen(false);
+    setToastNotification(null);
+    if (targetUrl) {
+      navigate(targetUrl);
+    }
+  };
+
   return (
     <div style={styles.container} ref={dropdownRef}>
       {/* Nút Chuông */}
@@ -162,8 +175,9 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ buttonStyle,
                   style={{
                     ...styles.notificationItem,
                     backgroundColor: item.isRead ? '#ffffff' : '#f0fdf4',
+                    cursor: 'pointer',
                   }}
-                  onClick={() => !item.isRead && handleMarkAsRead(item.notificationId)}
+                  onClick={() => handleItemClick(item.targetUrl, item.notificationId, item.isRead)}
                 >
                   <div style={styles.itemIcon}>
                     {item.type === 'Review' ? '⭐' : '📦'}
@@ -197,7 +211,16 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ buttonStyle,
 
       {/* Toast Popup khi có thông báo mới tức thì */}
       {toastNotification && (
-        <div style={styles.toast}>
+        <div
+          style={{ ...styles.toast, cursor: 'pointer' }}
+          onClick={() =>
+            handleItemClick(
+              toastNotification.targetUrl,
+              toastNotification.notificationId,
+              false
+            )
+          }
+        >
           <div style={styles.toastIcon}>🔔</div>
           <div style={styles.toastBody}>
             <strong style={styles.toastTitle}>{toastNotification.title}</strong>
@@ -206,7 +229,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ buttonStyle,
           <button
             type="button"
             style={styles.toastClose}
-            onClick={() => setToastNotification(null)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setToastNotification(null);
+            }}
           >
             ✕
           </button>

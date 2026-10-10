@@ -61,6 +61,16 @@ export const ProductDetailPage: React.FC = () => {
             setQuantity(1);
             setActiveImageIndex(0);
             setLoading(false);
+
+            // Tự động scroll xuống đánh giá nếu url có hash #reviews
+            if (window.location.hash === '#reviews') {
+              setTimeout(() => {
+                const reviewsSection = document.getElementById('reviews');
+                if (reviewsSection) {
+                  reviewsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }, 200);
+            }
           }
         })
         .catch(() => {
@@ -450,12 +460,14 @@ export const ProductDetailPage: React.FC = () => {
         />
 
         {/* 3. Customer Reviews */}
-        <ProductReviewsSection
-          rating={product.rating}
-          ratingCount={product.ratingCount}
-          distribution={product.reviewsDistribution}
-          reviews={product.reviews}
-        />
+        <div id="reviews">
+          <ProductReviewsSection
+            rating={product.rating}
+            ratingCount={product.ratingCount}
+            distribution={product.reviewsDistribution}
+            reviews={product.reviews}
+          />
+        </div>
 
         {/* 4. Recommendations / "Gợi ý phối đồ" */}
         <ProductRecommendations

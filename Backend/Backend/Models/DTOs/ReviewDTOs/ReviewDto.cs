@@ -52,4 +52,13 @@ namespace Backend.Models.DTOs.ReviewDTOs
         [MaxLength(2000, ErrorMessage = "Phản hồi không vượt quá 2000 ký tự.")]
         public string ReplyComment { get; set; } = string.Empty;
     }
+
+    public class SellerReviewStatsDto
+    {
+        public int TotalReviews { get; set; }
+        public double AverageRating { get; set; }
+        public int PendingReplies { get; set; }
+        public double ResponseRate { get; set; }
+        public Dictionary<int, int> StarCounts { get; set; } = new();
+    }
 }

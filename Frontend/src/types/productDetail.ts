@@ -27,6 +27,8 @@ export interface ProductReviewItem {
   comment: string;
   isVerifiedPurchase: boolean;
   userPhotos?: string[];
+  sellerReply?: string;
+  sellerRepliedAt?: string;
 }
 
 export interface RecommendedProduct {

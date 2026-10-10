@@ -223,6 +223,34 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                 ))}
               </div>
             )}
+
+            {/* Seller Response Box */}
+            {rev.sellerReply && (
+              <div
+                style={{
+                  marginTop: '10px',
+                  padding: '12px 16px',
+                  backgroundColor: 'var(--color-surface-container-low)',
+                  borderRadius: 'var(--radius-lg)',
+                  borderLeft: '3px solid #ff385c',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>
+                    🏪 Phản hồi của Người Bán
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 600 }}>✓ Chính hãng</span>
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-on-surface)', lineHeight: '1.45' }}>
+                  {rev.sellerReply}
+                </p>
+                {rev.sellerRepliedAt && (
+                  <span style={{ fontSize: '11px', color: 'var(--color-on-surface-variant)', display: 'block', marginTop: '4px' }}>
+                    {rev.sellerRepliedAt}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -449,6 +477,34 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                     )}
 
                     <div style={{ fontSize: '11.5px', color: '#9ca3af', marginTop: '2px' }}>{rev.timeAgo}</div>
+
+                    {/* Seller Response in Modal */}
+                    {rev.sellerReply && (
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          padding: '10px 14px',
+                          backgroundColor: '#f8fafc',
+                          borderRadius: '8px',
+                          borderLeft: '3px solid #ff385c',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                          <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a' }}>
+                            🏪 Phản hồi của Người Bán
+                          </span>
+                          <span style={{ fontSize: '10.5px', color: '#16a34a', fontWeight: 600 }}>✓ Chính hãng</span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: '1.4' }}>
+                          {rev.sellerReply}
+                        </p>
+                        {rev.sellerRepliedAt && (
+                          <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block', marginTop: '3px' }}>
+                            {rev.sellerRepliedAt}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
 

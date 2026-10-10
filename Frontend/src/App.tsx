@@ -11,6 +11,7 @@ import { ColorsManagePage } from './pages/ColorsManagePage';
 import { SizesManagePage } from './pages/SizesManagePage';
 import { AdminShippingPage } from './pages/AdminShippingPage';
 import { AdminOrdersPage } from './pages/AdminOrdersPage';
+import { SellerReviewsPage } from './pages/SellerReviewsPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
@@ -79,6 +80,14 @@ export const App: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['seller']}>
               <ColorsManagePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/seller/reviews"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'seller']}>
+              <SellerReviewsPage />
             </ProtectedRoute>
           }
         />

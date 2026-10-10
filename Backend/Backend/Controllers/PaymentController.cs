@@ -34,52 +34,6 @@ namespace Backend.Controllers
             }
         }
 
-        /// <summary>
-        /// Webhook nhận thông báo biến động số dư từ ngân hàng / bên thứ 3 (Cassie / SeAPay / VietQR Webhook)
-        /// </summary>
-        [HttpPost("webhook")]
-        public async Task<IActionResult> ReceiveBankWebhook([FromBody] BankWebhookPayloadDto payload, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var rawBody = Request.Body.CanSeek ? await new StreamReader(Request.Body).ReadToEndAsync() : null;
-                var result = await _paymentService.ProcessBankWebhookAsync(payload, rawBody, cancellationToken);
-
-                if (!result.Success)
-                {
-                    _logger.LogWarning("Webhook thanh toán bị từ chối: {Message}", result.Message);
-                    return BadRequest(new { success = false, message = result.Message });
-                }
-
-                return Ok(new { success = true, message = result.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi xử lý webhook thanh toán");
-                return StatusCode(500, new { success = false, message = "Lỗi máy chủ khi xử lý giao dịch." });
-            }
-        }
-
-        /// <summary>
-        /// API giả lập thanh toán thành công (Dành riêng cho môi trường Development & Demo trực tiếp)
-        /// </summary>
-        [HttpPost("simulate-success")]
-        public async Task<IActionResult> SimulatePaymentSuccess([FromBody] SimulatePaymentRequestDto request, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(request.OrderCode))
-            {
-                return BadRequest(new { success = false, message = "Vui lòng truyền mã đơn hàng OrderCode." });
-            }
-
-            var result = await _paymentService.SimulatePaymentSuccessAsync(request.OrderCode.Trim(), cancellationToken);
-            if (!result.Success)
-            {
-                return BadRequest(new { success = false, message = result.Message });
-            }
-
-            return Ok(new { success = true, message = result.Message, data = result.Data });
-        }
-
         #region MoMo Endpoints
 
         /// <summary>

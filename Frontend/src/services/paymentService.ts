@@ -1,4 +1,4 @@
-import type { PaymentStatusResponse, SimulatePaymentResponse } from '../types/payment';
+import type { PaymentStatusResponse } from '../types/payment';
 
 const API_BASE = '/api/Payment';
 
@@ -27,16 +27,6 @@ export const paymentService = {
     });
     const result = await handleResponse<{ success: boolean; data: PaymentStatusResponse }>(res);
     return result.data;
-  },
-
-  // Giả lập thanh toán thành công (phục vụ test/demo)
-  simulateSuccess: async (orderCode: string): Promise<SimulatePaymentResponse> => {
-    const res = await fetch(`${API_BASE}/simulate-success`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ orderCode }),
-    });
-    return handleResponse<SimulatePaymentResponse>(res);
   },
 
   // Tạo phiên thanh toán qua cổng MoMo (lấy payUrl)

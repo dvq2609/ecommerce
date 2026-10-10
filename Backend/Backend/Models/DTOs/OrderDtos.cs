@@ -77,7 +77,6 @@ namespace Backend.Models.DTOs
         public string PaymentMethodName => PaymentMethod switch
         {
             PaymentMethod.COD => "Thanh toán khi nhận hàng (COD)",
-            PaymentMethod.BankTransfer => "Chuyển khoản ngân hàng (VietQR)",
             PaymentMethod.VNPay => "Cổng thanh toán VNPay",
             PaymentMethod.MoMo => "Ví điện tử MoMo",
             _ => "Khác"

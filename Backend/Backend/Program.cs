@@ -72,7 +72,7 @@ builder.Services.AddScoped<IShippingService, ShippingService>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 
-// Payment Management (VietQR & Webhook)
+// Payment Management (MoMo Payment Gateway)
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 

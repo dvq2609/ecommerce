@@ -80,8 +80,8 @@ export const orderService = {
 /** Map PaymentMethod enum (số → label) */
 export const paymentMethodLabel: Record<number, string> = {
   0: 'Thanh toán khi nhận hàng (COD)',
-  1: 'Chuyển khoản ngân hàng (VietQR)',
-  2: 'Cổng thanh toán VNPay',
+  1: 'Cổng thanh toán VNPay',
+  2: 'Ví điện tử MoMo',
   3: 'Ví điện tử MoMo',
 };
 

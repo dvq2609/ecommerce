@@ -266,7 +266,6 @@ export const OrderSuccessPage: React.FC = () => {
             </section>
           </div>
 
-          {/* ── Right: VietQR or COD info ── */}
           {/* ── Right: MoMo or COD info ── */}
           <aside style={{ position: 'sticky', top: 90 }}>
             {isMoMo ? (

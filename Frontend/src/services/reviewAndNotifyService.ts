@@ -34,6 +34,14 @@ export interface ReviewItem {
   updatedAt?: string;
 }
 
+export interface SellerReviewStats {
+  totalReviews: number;
+  averageRating: number;
+  pendingReplies: number;
+  responseRate: number;
+  starCounts: Record<number, number>;
+}
+
 export interface CreateReviewRequest {
   orderId: number;
   productId: number;
@@ -77,6 +85,43 @@ export const reviewAndNotifyService = {
 
   async getProductReviews(productId: number, pageNumber = 1, pageSize = 10) {
     const res = await fetch(`${API_BASE}/reviews/product/${productId}?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+    return res.json();
+  },
+
+  // Seller Reviews APIs
+  async getSellerReviews(pageNumber = 1, pageSize = 20, rating?: number, hasReplied?: boolean) {
+    const token = authService.getToken();
+    const query = new URLSearchParams({
+      pageNumber: String(pageNumber),
+      pageSize: String(pageSize),
+    });
+    if (rating !== undefined) query.append('rating', String(rating));
+    if (hasReplied !== undefined) query.append('hasReplied', String(hasReplied));
+
+    const res = await fetch(`${API_BASE}/reviews/seller?${query.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.json();
+  },
+
+  async getSellerReviewStats(): Promise<{ success: boolean; data?: SellerReviewStats }> {
+    const token = authService.getToken();
+    const res = await fetch(`${API_BASE}/reviews/seller/stats`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.json();
+  },
+
+  async replyReview(reviewId: number, replyComment: string): Promise<{ success: boolean; message: string; data?: ReviewItem }> {
+    const token = authService.getToken();
+    const res = await fetch(`${API_BASE}/reviews/${reviewId}/reply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ replyComment }),
+    });
     return res.json();
   },
 

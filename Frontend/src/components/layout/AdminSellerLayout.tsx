@@ -20,7 +20,9 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
   const userRole = (currentUser?.role || 'seller').toLowerCase();
   const isAdmin = userRole === 'admin';
 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // State điều khiển đóng/mở Sidebar (thu gọn desktop & drawer mobile)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   const handleLogout = () => {
     authService.logout();
@@ -41,8 +43,8 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
   }
 
   // Phân quyền menu:
-  // - Admin: Chỉ quản lý kích cỡ quy chuẩn (Size Guide), không tạo sản phẩm
-  // - Seller: Đăng bán sản phẩm và Quản lý bảng màu sắc
+  // - Admin: Quản lý Đơn hàng, Cước vận chuyển, Bảng kích cỡ
+  // - Seller: Quản lý Đơn hàng, Đánh giá của khách, Đăng bán sản phẩm, Bảng màu sắc
   const navItems: NavGroup[] = isAdmin
     ? [
         {
@@ -83,6 +85,11 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
               path: '/admin/orders',
               icon: 'receipt_long',
             },
+            {
+              label: 'Đánh giá của khách',
+              path: '/seller/reviews',
+              icon: 'reviews',
+            },
           ],
         },
         {
@@ -107,135 +114,212 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
         },
       ];
 
+  const toggleSidebar = () => {
+    if (window.innerWidth < 768) {
+      setMobileMenuOpen((prev) => !prev);
+    } else {
+      setSidebarCollapsed((prev) => !prev);
+    }
+  };
+
   return (
     <div
       style={{
         display: 'flex',
         minHeight: '100vh',
-        backgroundColor: '#f7f7f7', // --color-surface-soft
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
-        color: '#222222', // --color-ink
+        backgroundColor: 'var(--color-surface-bg)',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        color: 'var(--color-on-surface)',
       }}
     >
-      {/* SIDEBAR DESKTOP */}
+      {/* SIDEBAR DESKTOP (Có thể thu nhỏ / mở rộng mượt mà) */}
       <aside
         style={{
-          width: '260px',
-          backgroundColor: '#ffffff', // --color-canvas
-          borderRight: '1px solid #ebebeb', // --color-hairline-soft
+          width: sidebarCollapsed ? '78px' : '264px',
+          backgroundColor: '#ffffff',
+          borderRight: '1px solid var(--color-border-subtle)',
           display: 'flex',
           flexDirection: 'column',
           position: 'sticky',
           top: 0,
           height: '100vh',
           zIndex: 40,
+          boxShadow: 'var(--shadow-soft)',
+          transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+          overflow: 'hidden',
+          flexShrink: 0,
         }}
         className="hidden md:flex"
       >
-        {/* Brand & Portal Header */}
+        {/* Brand Header */}
         <div
           style={{
-            padding: '24px 20px',
-            borderBottom: '1px solid #ebebeb',
+            padding: sidebarCollapsed ? '20px 14px' : '20px 20px',
+            borderBottom: '1px solid var(--color-border-subtle)',
             display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
+            flexDirection: 'column',
+            gap: '10px',
+            alignItems: sidebarCollapsed ? 'center' : 'flex-start',
+            transition: 'all 0.2s ease',
           }}
         >
-          <div
+          <Link
+            to="/"
             style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '8px', // --radius-sm
-              backgroundColor: '#ff385c', // --color-primary
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+              gap: '8px',
+              textDecoration: 'none',
+              color: 'inherit',
             }}
+            title="ShopVibe - Về Trang Chủ"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
-              {isAdmin ? 'shield_person' : 'storefront'}
-            </span>
-          </div>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#222222' }}>
-              ShopVibe
-            </div>
-            <div
+            <span
+              className="material-symbols-outlined"
               style={{
-                fontSize: '11px',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                color: '#ff385c',
+                color: 'var(--color-primary)',
+                fontSize: '30px',
+                fontVariationSettings: "'FILL' 1",
+                flexShrink: 0,
               }}
             >
-              {isAdmin ? '👑 Ban Quản Trị Sàn' : '🏪 Kênh Người Bán'}
+              local_mall
+            </span>
+            {!sidebarCollapsed && (
+              <span
+                style={{
+                  fontSize: '22px',
+                  fontWeight: 800,
+                  letterSpacing: '-0.5px',
+                  color: 'var(--color-on-surface)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Shop<span style={{ color: 'var(--color-primary)' }}>Vibe</span>
+              </span>
+            )}
+          </Link>
+
+          {/* Badge phân loại Portal */}
+          {!sidebarCollapsed ? (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 10px',
+                borderRadius: 'var(--radius-full)',
+                backgroundColor: 'var(--color-primary-fixed)',
+                color: 'var(--color-on-primary-fixed)',
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                width: 'fit-content',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '15px', color: 'var(--color-primary)' }}
+              >
+                {isAdmin ? 'shield_person' : 'storefront'}
+              </span>
+              <span>{isAdmin ? 'Quản Trị Sàn' : 'Kênh Người Bán'}</span>
             </div>
-          </div>
+          ) : (
+            <div
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-primary-fixed)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title={isAdmin ? 'Ban Quản Trị Sàn' : 'Kênh Người Bán'}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '16px', color: 'var(--color-primary)' }}
+              >
+                {isAdmin ? 'shield_person' : 'storefront'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Navigation Items */}
-        <div style={{ flex: 1, padding: '20px 12px', overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: sidebarCollapsed ? '16px 8px' : '20px 14px', overflowY: 'auto' }}>
           {navItems.map((group, gIdx) => (
-            <div key={gIdx} style={{ marginBottom: '24px' }}>
-              <div
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  color: '#6a6a6a', // --color-muted
-                  padding: '0 12px 8px',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                {group.group}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div key={gIdx} style={{ marginBottom: '22px' }}>
+              {!sidebarCollapsed && (
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    color: 'var(--color-on-surface-variant)',
+                    padding: '0 12px 8px',
+                    letterSpacing: '0.05em',
+                    opacity: 0.8,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {group.group}
+                </div>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 {group.items.map((item, iIdx) => {
                   const isActive = location.pathname === item.path;
                   return (
                     <Link
                       key={iIdx}
                       to={item.path}
+                      title={sidebarCollapsed ? item.label : undefined}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '10px 14px',
-                        borderRadius: '8px',
+                        justifyContent: sidebarCollapsed ? 'center' : 'space-between',
+                        padding: sidebarCollapsed ? '10px 0' : '10px 14px',
+                        borderRadius: 'var(--radius-lg)',
                         textDecoration: 'none',
-                        fontSize: '14px',
-                        fontWeight: isActive ? 600 : 400,
-                        color: isActive ? '#ff385c' : '#3f3f3f', // --color-body
-                        backgroundColor: isActive ? '#fff1f3' : 'transparent',
-                        border: isActive ? '1px solid #ffd1da' : '1px solid transparent',
-                        transition: 'background 150ms ease-out',
+                        fontSize: '13.5px',
+                        fontWeight: isActive ? 700 : 500,
+                        color: isActive ? 'var(--color-primary)' : 'var(--color-on-surface)',
+                        backgroundColor: isActive
+                          ? 'var(--color-surface-container-low)'
+                          : 'transparent',
+                        border: isActive
+                          ? '1px solid var(--color-primary-fixed-dim)'
+                          : '1px solid transparent',
+                        transition: 'all 0.15s ease',
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span
                           className="material-symbols-outlined"
                           style={{
-                            fontSize: '20px',
-                            color: isActive ? '#ff385c' : '#6a6a6a',
+                            fontSize: '22px',
+                            color: isActive ? 'var(--color-primary)' : 'var(--color-on-surface-variant)',
+                            fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
+                            flexShrink: 0,
                           }}
                         >
                           {item.icon}
                         </span>
-                        <span>{item.label}</span>
+                        {!sidebarCollapsed && <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>}
                       </div>
-                      {item.badge && (
+                      {!sidebarCollapsed && item.badge && (
                         <span
                           style={{
                             fontSize: '10.5px',
-                            fontWeight: 600,
+                            fontWeight: 700,
                             padding: '2px 8px',
-                            borderRadius: '9999px',
-                            backgroundColor: '#ebebeb',
-                            color: '#222222',
+                            borderRadius: 'var(--radius-full)',
+                            backgroundColor: isActive ? 'var(--color-primary-fixed)' : 'var(--color-surface-container)',
+                            color: isActive ? 'var(--color-on-primary-fixed)' : 'var(--color-on-surface-variant)',
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           {item.badge}
@@ -249,116 +333,171 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
           ))}
         </div>
 
-        {/* User Card & Back to Store */}
+        {/* User Card & Back to Store Footer */}
         <div
           style={{
-            padding: '16px',
-            borderTop: '1px solid #ebebeb',
+            padding: sidebarCollapsed ? '12px 8px' : '16px',
+            borderTop: '1px solid var(--color-border-subtle)',
             backgroundColor: '#ffffff',
           }}
         >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              marginBottom: '12px',
-            }}
-          >
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                backgroundColor: '#f7f7f7',
-                border: '1px solid #dddddd',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                color: '#222222',
-                fontSize: '14px',
-              }}
-            >
-              {currentUser?.fullName?.charAt(0) || 'U'}
-            </div>
-            <div style={{ overflow: 'hidden', flex: 1 }}>
+          {!sidebarCollapsed ? (
+            <>
               <div
                 style={{
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: '#222222',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  marginBottom: '12px',
+                  padding: '6px 8px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--color-surface-container-lowest)',
                 }}
               >
-                {currentUser?.fullName || 'Người dùng'}
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--color-primary)',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    boxShadow: '0 2px 6px rgba(186, 0, 54, 0.25)',
+                    flexShrink: 0,
+                  }}
+                >
+                  {currentUser?.fullName?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <div style={{ overflow: 'hidden', flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      color: 'var(--color-on-surface)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {currentUser?.fullName || 'Người dùng'}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      color: 'var(--color-on-surface-variant)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {currentUser?.email}
+                  </div>
+                </div>
               </div>
-              <div
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <Link
+                  to="/"
+                  style={{
+                    flex: 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '9px 12px',
+                    borderRadius: 'var(--radius-full)',
+                    backgroundColor: 'var(--color-surface-container-low)',
+                    border: '1px solid var(--color-border-subtle)',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    color: 'var(--color-on-surface)',
+                    textDecoration: 'none',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: '18px', color: 'var(--color-primary)' }}
+                  >
+                    storefront
+                  </span>
+                  <span>Về Shop</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  style={{
+                    padding: '9px 12px',
+                    borderRadius: 'var(--radius-full)',
+                    backgroundColor: 'var(--color-surface-container-low)',
+                    border: '1px solid var(--color-border-subtle)',
+                    color: 'var(--color-error)',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title="Đăng xuất"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                    logout
+                  </span>
+                </button>
+              </div>
+            </>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+              <Link
+                to="/"
                 style={{
-                  fontSize: '11.5px',
-                  color: '#6a6a6a',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'var(--color-surface-container-low)',
+                  border: '1px solid var(--color-border-subtle)',
+                  color: 'var(--color-primary)',
+                  textDecoration: 'none',
                 }}
+                title="Về Shop"
               >
-                {currentUser?.email}
-              </div>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                  storefront
+                </span>
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'var(--color-surface-container-low)',
+                  border: '1px solid var(--color-border-subtle)',
+                  color: 'var(--color-error)',
+                  cursor: 'pointer',
+                }}
+                title="Đăng xuất"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                  logout
+                </span>
+              </button>
             </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <Link
-              to="/"
-              style={{
-                flex: 1,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '4px',
-                padding: '8px 10px',
-                borderRadius: '8px',
-                backgroundColor: '#ffffff',
-                border: '1px solid #dddddd',
-                fontSize: '12.5px',
-                fontWeight: 500,
-                color: '#222222',
-                textDecoration: 'none',
-                transition: 'background 150ms ease-out',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                storefront
-              </span>
-              <span>Cửa hàng</span>
-            </Link>
-
-            <button
-              type="button"
-              onClick={handleLogout}
-              style={{
-                padding: '8px 10px',
-                borderRadius: '8px',
-                backgroundColor: '#ffffff',
-                border: '1px solid #dddddd',
-                color: '#c13515', // --color-error
-                fontSize: '12px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'background 150ms ease-out',
-              }}
-              title="Đăng xuất"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                logout
-              </span>
-            </button>
-          </div>
+          )}
         </div>
       </aside>
 
@@ -368,72 +507,137 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
         <header
           style={{
             height: '64px',
-            backgroundColor: '#ffffff',
-            borderBottom: '1px solid #ebebeb',
+            backgroundColor: 'rgba(252, 249, 248, 0.88)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottom: '1px solid var(--color-border-subtle)',
+            boxShadow: 'var(--shadow-soft)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '0 28px',
+            padding: '0 24px',
             position: 'sticky',
             top: 0,
             zIndex: 30,
           }}
         >
+          {/* Nút 3 gạch điều khiển Sidebar & Tiêu đề trang (KHÔNG lặp lại logo ShopVibe ở đây nữa) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <button
               type="button"
-              className="md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={toggleSidebar}
               style={{
-                background: 'none',
-                border: 'none',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-surface-container-low)',
+                border: '1px solid var(--color-border-subtle)',
                 cursor: 'pointer',
-                padding: '4px',
                 display: 'flex',
-                color: '#222222',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--color-on-surface)',
+                transition: 'all 0.15s ease',
               }}
+              title={sidebarCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
                 menu
               </span>
             </button>
 
             <div>
-              <h1 style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: '#222222' }}>
+              <h1 style={{ fontSize: '17.5px', fontWeight: 800, margin: 0, color: 'var(--color-on-surface)' }}>
                 {title || (isAdmin ? 'Quản Trị Quy Chuẩn Hệ Thống' : 'Kênh Người Bán ShopVibe')}
               </h1>
               {subtitle && (
-                <p style={{ fontSize: '12px', color: '#6a6a6a', margin: '2px 0 0' }}>{subtitle}</p>
+                <p style={{ fontSize: '12px', color: 'var(--color-on-surface-variant)', margin: '2px 0 0' }}>
+                  {subtitle}
+                </p>
               )}
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <NotificationBell />
-            <span
-              style={{
-                fontSize: '12px',
-                fontWeight: 600,
-                padding: '4px 12px',
-                borderRadius: '9999px',
-                backgroundColor: '#ffffff',
-                color: '#222222',
-                border: '1px solid #dddddd',
-                display: 'inline-flex',
+          {/* Góc phải: Chuông thông báo & User avatar pill */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Chuông thông báo realtime đồng bộ icon như Homepage */}
+            <NotificationBell
+              buttonStyle={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '50%',
+                display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
+                justifyContent: 'center',
+                position: 'relative',
+                color: 'var(--color-on-surface)',
+                backgroundColor: 'var(--color-surface-container-low)',
+                border: '1px solid var(--color-border-subtle)',
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'all 0.2s ease',
+              }}
+              icon={
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+                  notifications
+                </span>
+              }
+            />
+
+            {/* User Pill / Role Pill giống Homepage */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '4px 10px 4px 4px',
+                borderRadius: 'var(--radius-full)',
+                backgroundColor: 'var(--color-surface-container-low)',
+                border: '1px solid var(--color-border-subtle)',
               }}
             >
-              <span
+              <div
                 style={{
-                  width: '7px',
-                  height: '7px',
+                  width: '32px',
+                  height: '32px',
                   borderRadius: '50%',
-                  backgroundColor: '#ff385c',
+                  backgroundColor: 'var(--color-primary)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '13px',
                 }}
-              />
-              {isAdmin ? 'ADMINISTRATOR' : 'SELLER PARTNER'}
-            </span>
+              >
+                {currentUser?.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+                <span
+                  style={{
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    color: 'var(--color-on-surface)',
+                    maxWidth: '110px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {currentUser?.fullName?.split(' ').pop() || 'User'}
+                </span>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    color: 'var(--color-primary)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {isAdmin ? 'Admin Portal' : 'Seller Store'}
+                </span>
+              </div>
+            </div>
           </div>
         </header>
 
@@ -442,6 +646,148 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
           <div style={{ maxWidth: '1160px', margin: '0 auto' }}>{children}</div>
         </main>
       </div>
+
+      {/* MOBILE DRAWER (Chỉ mở khi màn hình điện thoại < 768px) */}
+      {mobileMenuOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99,
+            display: 'flex',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(4px)',
+            }}
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div
+            style={{
+              position: 'relative',
+              width: '280px',
+              backgroundColor: '#ffffff',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: 'var(--shadow-card)',
+              zIndex: 100,
+            }}
+          >
+            <div
+              style={{
+                padding: '20px',
+                borderBottom: '1px solid var(--color-border-subtle)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    color: 'var(--color-primary)',
+                    fontSize: '28px',
+                    fontVariationSettings: "'FILL' 1",
+                  }}
+                >
+                  local_mall
+                </span>
+                <span style={{ fontSize: '20px', fontWeight: 800 }}>
+                  Shop<span style={{ color: 'var(--color-primary)' }}>Vibe</span>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '22px',
+                  cursor: 'pointer',
+                  color: 'var(--color-on-surface-variant)',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
+              {navItems.map((group, gIdx) => (
+                <div key={gIdx} style={{ marginBottom: '20px' }}>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      color: 'var(--color-on-surface-variant)',
+                      padding: '0 8px 6px',
+                    }}
+                  >
+                    {group.group}
+                  </div>
+                  {group.items.map((item, iIdx) => (
+                    <Link
+                      key={iIdx}
+                      to={item.path}
+                      onClick={() => setMobileMenuOpen(false)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-md)',
+                        textDecoration: 'none',
+                        fontSize: '13.5px',
+                        fontWeight: location.pathname === item.path ? 700 : 500,
+                        color: location.pathname === item.path ? 'var(--color-primary)' : 'var(--color-on-surface)',
+                        backgroundColor: location.pathname === item.path ? 'var(--color-surface-container-low)' : 'transparent',
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                        {item.icon}
+                      </span>
+                      <span>{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ padding: '16px', borderTop: '1px solid var(--color-border-subtle)' }}>
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--color-surface-container)',
+                  border: 'none',
+                  color: 'var(--color-error)',
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                  logout
+                </span>
+                <span>Đăng xuất</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

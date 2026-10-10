@@ -116,7 +116,7 @@ namespace Backend.Services.ReviewService
                 message: notifMessage,
                 type: "Review",
                 referenceId: review.ReviewId.ToString(),
-                targetUrl: $"/seller/reviews"
+                targetUrl: $"/seller/reviews#review-{review.ReviewId}"
             );
 
             // DTO trả về
@@ -205,13 +205,27 @@ namespace Backend.Services.ReviewService
         }
 
         public async Task<(List<ReviewResponseDto> Items, int TotalCount)> GetSellerReviewsAsync(
-            int sellerId, int pageNumber = 1, int pageSize = 20)
+            int sellerId, int pageNumber = 1, int pageSize = 20, int? rating = null, bool? hasReplied = null)
         {
             var query = _context.Reviews
                 .Include(r => r.User)
                 .Include(r => r.Product)
-                .Where(r => r.SellerId == sellerId)
-                .OrderByDescending(r => r.CreatedAt);
+                .Where(r => r.SellerId == sellerId);
+
+            if (rating.HasValue && rating.Value >= 1 && rating.Value <= 5)
+            {
+                query = query.Where(r => r.Rating == rating.Value);
+            }
+
+            if (hasReplied.HasValue)
+            {
+                if (hasReplied.Value)
+                    query = query.Where(r => !string.IsNullOrEmpty(r.SellerReply));
+                else
+                    query = query.Where(r => string.IsNullOrEmpty(r.SellerReply));
+            }
+
+            query = query.OrderByDescending(r => r.CreatedAt);
 
             var totalCount = await query.CountAsync();
             var reviews = await query
@@ -244,6 +258,47 @@ namespace Backend.Services.ReviewService
             return (items, totalCount);
         }
 
+        public async Task<SellerReviewStatsDto> GetSellerReviewsStatsAsync(int sellerId)
+        {
+            var reviews = await _context.Reviews
+                .Where(r => r.SellerId == sellerId)
+                .Select(r => new { r.Rating, HasReply = !string.IsNullOrEmpty(r.SellerReply) })
+                .ToListAsync();
+
+            var total = reviews.Count;
+            if (total == 0)
+            {
+                return new SellerReviewStatsDto
+                {
+                    TotalReviews = 0,
+                    AverageRating = 5.0,
+                    PendingReplies = 0,
+                    ResponseRate = 100.0,
+                    StarCounts = new Dictionary<int, int> { { 5, 0 }, { 4, 0 }, { 3, 0 }, { 2, 0 }, { 1, 0 } }
+                };
+            }
+
+            var avgRating = Math.Round(reviews.Average(r => (double)r.Rating), 1);
+            var repliedCount = reviews.Count(r => r.HasReply);
+            var pendingReplies = total - repliedCount;
+            var responseRate = Math.Round(((double)repliedCount / total) * 100, 1);
+
+            var starCounts = new Dictionary<int, int>();
+            for (int s = 1; s <= 5; s++)
+            {
+                starCounts[s] = reviews.Count(r => r.Rating == s);
+            }
+
+            return new SellerReviewStatsDto
+            {
+                TotalReviews = total,
+                AverageRating = avgRating,
+                PendingReplies = pendingReplies,
+                ResponseRate = responseRate,
+                StarCounts = starCounts
+            };
+        }
+
         public async Task<(bool Success, string Message, ReviewResponseDto? Data)> ReplyReviewAsync(
             int sellerId, int reviewId, string replyComment)
         {
@@ -271,7 +326,7 @@ namespace Backend.Services.ReviewService
                 message: $"Shop đã trả lời bình luận của bạn về sản phẩm \"{review.Product?.ProductName}\": \"{replyComment}\"",
                 type: "ReviewReply",
                 referenceId: review.ReviewId.ToString(),
-                targetUrl: $"/products/{review.Product?.Slug}"
+                targetUrl: $"/product/{review.Product?.Slug}#reviews"
             );
 
             var resultDto = new ReviewResponseDto

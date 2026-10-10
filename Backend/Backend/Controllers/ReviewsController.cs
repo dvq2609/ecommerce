@@ -82,16 +82,20 @@ namespace Backend.Controllers
         }
 
         /// <summary>
-        /// Người bán xem các đánh giá về các sản phẩm của shop mình
+        /// Người bán xem các đánh giá về các sản phẩm của shop mình (kèm bộ lọc)
         /// </summary>
         [HttpGet("seller")]
         [Authorize(Roles = "seller,admin")]
-        public async Task<IActionResult> GetSellerReviews([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
+        public async Task<IActionResult> GetSellerReviews(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] int? rating = null,
+            [FromQuery] bool? hasReplied = null)
         {
             var sellerId = GetCurrentUserId();
             if (sellerId == 0) return Unauthorized();
 
-            var (items, totalCount) = await _reviewService.GetSellerReviewsAsync(sellerId, pageNumber, pageSize);
+            var (items, totalCount) = await _reviewService.GetSellerReviewsAsync(sellerId, pageNumber, pageSize, rating, hasReplied);
             return Ok(new
             {
                 success = true,
@@ -103,6 +107,20 @@ namespace Backend.Controllers
                     pageSize
                 }
             });
+        }
+
+        /// <summary>
+        /// Lấy thống kê KPI đánh giá của Shop
+        /// </summary>
+        [HttpGet("seller/stats")]
+        [Authorize(Roles = "seller,admin")]
+        public async Task<IActionResult> GetSellerReviewStats()
+        {
+            var sellerId = GetCurrentUserId();
+            if (sellerId == 0) return Unauthorized();
+
+            var stats = await _reviewService.GetSellerReviewsStatsAsync(sellerId);
+            return Ok(new { success = true, data = stats });
         }
 
         /// <summary>

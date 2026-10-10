@@ -12,7 +12,9 @@ namespace Backend.Services.ReviewService
         Task<bool> CanUserReviewProductAsync(int userId, int orderId, int productId);
 
         Task<(List<ReviewResponseDto> Items, int TotalCount)> GetSellerReviewsAsync(
-            int sellerId, int pageNumber = 1, int pageSize = 20);
+            int sellerId, int pageNumber = 1, int pageSize = 20, int? rating = null, bool? hasReplied = null);
+
+        Task<SellerReviewStatsDto> GetSellerReviewsStatsAsync(int sellerId);
 
         Task<(bool Success, string Message, ReviewResponseDto? Data)> ReplyReviewAsync(
             int sellerId, int reviewId, string replyComment);

@@ -181,65 +181,127 @@ export const AdminOrdersPage: React.FC = () => {
         </div>
       )}
 
-      {/* ─── 1. KPI STATS CARDS ─────────────────────────────────────────────── */}
+      {/* ─── 1. KPI STATS CARDS (Chuẩn Homepage design tokens) ─────────────── */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
           gap: '16px',
           marginBottom: '24px',
         }}
       >
         <div style={cardKpiStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', color: '#6a6a6a', fontWeight: 600 }}>TỔNG ĐƠN HÀNG</span>
-            <span className="material-symbols-outlined" style={{ color: '#ff385c', fontSize: '22px' }}>
-              receipt_long
+            <span style={{ fontSize: '12px', color: 'var(--color-on-surface)', fontWeight: 700, letterSpacing: '0.5px' }}>
+              TỔNG ĐƠN HÀNG
             </span>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-surface-container-low)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)', fontSize: '20px' }}>
+                receipt_long
+              </span>
+            </div>
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 700, color: '#222222', marginTop: '8px' }}>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-on-surface)', marginTop: '8px', letterSpacing: '-0.5px' }}>
             {stats?.totalOrders ?? 0}
           </div>
-          <div style={{ fontSize: '12px', color: '#15803d', marginTop: '4px' }}>Toàn bộ đơn hàng ghi nhận</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-on-surface-variant)', marginTop: '4px' }}>
+            Toàn bộ đơn hàng ghi nhận
+          </div>
         </div>
 
-        <div style={{ ...cardKpiStyle, borderLeft: '4px solid #b45309' }}>
+        <div style={cardKpiStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', color: '#b45309', fontWeight: 600 }}>CHỜ DUYỆT (PENDING)</span>
-            <span className="material-symbols-outlined" style={{ color: '#b45309', fontSize: '22px' }}>
-              pending_actions
+            <span style={{ fontSize: '12px', color: 'var(--color-on-surface)', fontWeight: 700, letterSpacing: '0.5px' }}>
+              CHỜ DUYỆT (PENDING)
             </span>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: '#fffbeb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ color: '#b45309', fontSize: '20px' }}>
+                pending_actions
+              </span>
+            </div>
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 700, color: '#b45309', marginTop: '8px' }}>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-on-surface)', marginTop: '8px', letterSpacing: '-0.5px' }}>
             {stats?.pendingOrders ?? 0}
           </div>
-          <div style={{ fontSize: '12px', color: '#6a6a6a', marginTop: '4px' }}>Cần xử lý & xác nhận ngay</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-on-surface-variant)', marginTop: '4px' }}>
+            Cần xử lý & xác nhận ngay
+          </div>
         </div>
 
-        <div style={{ ...cardKpiStyle, borderLeft: '4px solid #0369a1' }}>
+        <div style={cardKpiStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', color: '#0369a1', fontWeight: 600 }}>ĐANG GIAO HÀNG</span>
-            <span className="material-symbols-outlined" style={{ color: '#0369a1', fontSize: '22px' }}>
-              local_shipping
+            <span style={{ fontSize: '12px', color: 'var(--color-on-surface)', fontWeight: 700, letterSpacing: '0.5px' }}>
+              ĐANG GIAO HÀNG
             </span>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: '#f0f9ff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ color: '#0369a1', fontSize: '20px' }}>
+                local_shipping
+              </span>
+            </div>
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 700, color: '#0369a1', marginTop: '8px' }}>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-on-surface)', marginTop: '8px', letterSpacing: '-0.5px' }}>
             {stats?.shippingOrders ?? 0}
           </div>
-          <div style={{ fontSize: '12px', color: '#6a6a6a', marginTop: '4px' }}>Đang trên đường vận chuyển</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-on-surface-variant)', marginTop: '4px' }}>
+            Đang trên đường vận chuyển
+          </div>
         </div>
 
-        <div style={{ ...cardKpiStyle, borderLeft: '4px solid #15803d' }}>
+        <div style={cardKpiStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', color: '#15803d', fontWeight: 600 }}>DOANH THU THỰC TẾ</span>
-            <span className="material-symbols-outlined" style={{ color: '#15803d', fontSize: '22px' }}>
-              payments
+            <span style={{ fontSize: '12px', color: 'var(--color-on-surface)', fontWeight: 700, letterSpacing: '0.5px' }}>
+              DOANH THU THỰC TẾ
             </span>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-success-bg)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ color: '#006a62', fontSize: '20px' }}>
+                payments
+              </span>
+            </div>
           </div>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: '#15803d', marginTop: '8px' }}>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--color-on-surface)', marginTop: '8px', letterSpacing: '-0.5px' }}>
             {formatCurrency(stats?.totalRevenue ?? 0)}
           </div>
-          <div style={{ fontSize: '12px', color: '#6a6a6a', marginTop: '4px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--color-on-surface-variant)', marginTop: '4px' }}>
             {stats?.deliveredOrders ?? 0} đơn giao thành công
           </div>
         </div>
@@ -959,20 +1021,23 @@ export const AdminOrdersPage: React.FC = () => {
 
 // ─── Inline Style Constants ──────────────────────────────────────────────────
 const cardKpiStyle: React.CSSProperties = {
-  backgroundColor: '#ffffff',
-  borderRadius: '12px',
-  padding: '18px 20px',
-  border: '1px solid #ebebeb',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+  backgroundColor: 'var(--color-surface-card)',
+  borderRadius: 'var(--radius-xl)',
+  padding: '20px 22px',
+  border: '1px solid var(--color-border-subtle)',
+  boxShadow: 'var(--shadow-sm)',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
 };
 
 const selectControlStyle: React.CSSProperties = {
-  padding: '8px 12px',
-  borderRadius: '8px',
-  border: '1px solid #dddddd',
+  padding: '8px 14px',
+  borderRadius: 'var(--radius-full)',
+  border: '1px solid var(--color-border-subtle)',
   fontSize: '13px',
-  backgroundColor: '#ffffff',
-  color: '#374151',
+  backgroundColor: 'var(--color-surface-card)',
+  color: 'var(--color-on-surface)',
   outline: 'none',
 };
 

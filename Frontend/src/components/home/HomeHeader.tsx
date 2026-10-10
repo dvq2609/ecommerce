@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { NotificationBell } from '../notification/NotificationBell';
 
 interface HomeHeaderProps {
   currentUser: { fullName: string; email: string; role?: string } | null;
@@ -172,10 +173,9 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
           </button>
 
           {/* Notification Bell */}
-          <button
-            type="button"
-            aria-label="Thông báo"
-            style={{
+          {/* Notification Bell with Realtime Popup */}
+          <NotificationBell
+            buttonStyle={{
               width: '42px',
               height: '42px',
               borderRadius: '50%',
@@ -185,25 +185,16 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
               position: 'relative',
               color: 'var(--color-on-surface)',
               backgroundColor: 'transparent',
+              border: 'none',
+              boxShadow: 'none',
               transition: 'background-color 0.2s',
             }}
-            onClick={() => alert('Chưa có thông báo mới!')}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
-              notifications
-            </span>
-            <span
-              style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                width: '7px',
-                height: '7px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--color-primary)',
-              }}
-            />
-          </button>
+            icon={
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+                notifications
+              </span>
+            }
+          />
 
           {/* User Profile / Login Button */}
           {currentUser ? (
@@ -318,9 +309,29 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
                     )}
                   </div>
 
-                  {/* ADMIN LINKS (Admin only: System standard size guide & shipping) */}
+                  {/* ADMIN LINKS (Admin only: Orders, Size guide, Shipping) */}
                   {(currentUser.role || '').toLowerCase() === 'admin' && (
                     <div style={{ padding: '4px 0', borderBottom: '1px solid #ebebeb' }}>
+                      <Link
+                        to="/admin/orders"
+                        onClick={() => setShowUserMenu(false)}
+                        style={{
+                          width: '100%',
+                          padding: '8px 16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '13px',
+                          fontWeight: 500,
+                          color: '#222222',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ff385c' }}>
+                          receipt_long
+                        </span>
+                        <span>Quản lý Đơn Hàng (Orders)</span>
+                      </Link>
                       <Link
                         to="/admin/sizes"
                         onClick={() => setShowUserMenu(false)}

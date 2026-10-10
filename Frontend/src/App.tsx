@@ -10,6 +10,7 @@ import { AddProductPage } from './pages/AddProductPage';
 import { ColorsManagePage } from './pages/ColorsManagePage';
 import { SizesManagePage } from './pages/SizesManagePage';
 import { AdminShippingPage } from './pages/AdminShippingPage';
+import { AdminOrdersPage } from './pages/AdminOrdersPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
@@ -54,7 +55,15 @@ export const App: React.FC = () => {
             </ProtectedRoute>
           }
         />
-        <Route path="/admin" element={<Navigate to="/admin/sizes" replace />} />
+        <Route
+          path="/admin/orders"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'seller']}>
+              <AdminOrdersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/admin" element={<Navigate to="/admin/orders" replace />} />
 
         {/* SELLER ROUTES (Seller Only: Product Creation & Color Palette) */}
         <Route

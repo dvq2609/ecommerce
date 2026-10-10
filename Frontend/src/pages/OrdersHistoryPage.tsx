@@ -9,8 +9,18 @@ import type { OrderResponse, OrderStatus } from '../types/order';
 const formatPrice = (p: number) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p);
 
-const formatDate = (s: string) =>
-  new Date(s).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
+const formatDate = (s: string) => {
+  if (!s) return '';
+  const dateStr = s.endsWith('Z') || s.includes('+') ? s : `${s}Z`;
+  return new Date(dateStr).toLocaleString('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    hour: '2-digit',
+    minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+};
 
 const TABS: { label: string; status?: OrderStatus }[] = [
   { label: 'Tất cả' },
@@ -29,6 +39,8 @@ const CANCEL_REASONS = [
   'Lý do khác',
 ];
 
+import { ReviewModal } from '../components/review/ReviewModal';
+
 export const OrdersHistoryPage: React.FC = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
@@ -42,6 +54,14 @@ export const OrdersHistoryPage: React.FC = () => {
   // Modals
   const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
   const [cancelTargetOrder, setCancelTargetOrder] = useState<OrderResponse | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<{
+    orderId: number;
+    productId: number;
+    productName: string;
+    productImage?: string;
+    productVariantId?: number;
+    variantInfo?: string;
+  } | null>(null);
   const [cancelReason, setCancelReason] = useState(CANCEL_REASONS[0]);
   const [customReason, setCustomReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
@@ -271,6 +291,37 @@ export const OrdersHistoryPage: React.FC = () => {
 
                         <div style={styles.itemPriceCol}>
                           <span style={styles.itemPrice}>{formatPrice(item.totalPrice)}</span>
+                          {order.orderStatus === 4 && (
+                            <button
+                              type="button"
+                              style={{
+                                marginTop: '6px',
+                                padding: '5px 12px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                color: '#d97706',
+                                backgroundColor: '#fffbeb',
+                                border: '1px solid #fde68a',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                              onClick={() => {
+                                setReviewTarget({
+                                  orderId: order.orderId,
+                                  productId: item.productId,
+                                  productName: item.productName,
+                                  productImage: item.productImageUrl || undefined,
+                                  productVariantId: item.productVariantId || undefined,
+                                  variantInfo: item.variantInfo || undefined,
+                                });
+                              }}
+                            >
+                              ⭐ Đánh giá
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -557,6 +608,27 @@ export const OrdersHistoryPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ════════════ MODAL: ĐÁNH GIÁ SẢN PHẨM ════════════ */}
+      {reviewTarget && (
+        <ReviewModal
+          orderId={reviewTarget.orderId}
+          productId={reviewTarget.productId}
+          productName={reviewTarget.productName}
+          productImage={reviewTarget.productImage}
+          productVariantId={reviewTarget.productVariantId}
+          variantInfo={reviewTarget.variantInfo}
+          onClose={() => setReviewTarget(null)}
+          onSuccess={() => {
+            setReviewTarget(null);
+            setActionMessage({
+              text: 'Cảm ơn bạn! Đánh giá sản phẩm đã được gửi thành công.',
+              type: 'success',
+            });
+            setTimeout(() => setActionMessage(null), 4000);
+          }}
+        />
       )}
 
       <BottomNavBar />

@@ -83,6 +83,9 @@ builder.Services.AddScoped<Backend.Services.ReviewService.IReviewService, Backen
 // Seller Analytics Management
 builder.Services.AddScoped<Backend.Services.AnalyticsService.ISellerAnalyticsService, Backend.Services.AnalyticsService.SellerAnalyticsService>();
 
+// Seller Inventory Management
+builder.Services.AddScoped<Backend.Services.InventoryService.ISellerInventoryService, Backend.Services.InventoryService.SellerInventoryService>();
+
 // Realtime SignalR
 builder.Services.AddSignalR();
 

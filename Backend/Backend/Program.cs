@@ -80,6 +80,9 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<Backend.Services.NotificationService.INotificationService, Backend.Services.NotificationService.NotificationService>();
 builder.Services.AddScoped<Backend.Services.ReviewService.IReviewService, Backend.Services.ReviewService.ReviewService>();
 
+// Seller Analytics Management
+builder.Services.AddScoped<Backend.Services.AnalyticsService.ISellerAnalyticsService, Backend.Services.AnalyticsService.SellerAnalyticsService>();
+
 // Realtime SignalR
 builder.Services.AddSignalR();
 

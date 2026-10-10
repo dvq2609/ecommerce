@@ -45,6 +45,21 @@ namespace Backend.Repositories.OrderRepo
                 .FirstOrDefaultAsync(o => o.OrderCode == orderCode && o.UserId == userId);
         }
 
+        public async Task<Order?> GetByIdempotencyKeyAsync(string idempotencyKey, int userId)
+        {
+            return await _context.Orders
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                        .ThenInclude(p => p.Images)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.ProductVariant)
+                        .ThenInclude(pv => pv!.Color)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.ProductVariant)
+                        .ThenInclude(pv => pv!.Size)
+                .FirstOrDefaultAsync(o => o.IdempotencyKey == idempotencyKey && o.UserId == userId);
+        }
+
         public async Task<(List<Order> Items, int TotalCount)> GetPagedByUserAsync(int userId, OrderQueryDto query)
         {
             var dbQuery = _context.Orders

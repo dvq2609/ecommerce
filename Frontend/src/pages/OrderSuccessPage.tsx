@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { orderService, orderStatusMeta, paymentMethodLabel } from '../services/orderService';
+import { paymentService } from '../services/paymentService';
 import { HomeHeader } from '../components/home/HomeHeader';
 import { authService } from '../services/authService';
 import type { OrderResponse } from '../types/order';
@@ -11,23 +12,6 @@ const formatPrice = (p: number) =>
 const formatDate = (s: string) =>
   new Date(s).toLocaleString('vi-VN', { dateStyle: 'medium', timeStyle: 'short' });
 
-// ── VietQR helper ─────────────────────────────────────────────────────────────
-// Dùng QR tĩnh demo (thực tế trỏ đến tài khoản merchant)
-const VIETQR_BANK = 'MB';
-const VIETQR_ACCOUNT = '0123456789';
-const VIETQR_TEMPLATE = 'compact2';
-
-function buildVietQRUrl(amount: number, orderCode: string) {
-  const base = `https://img.vietqr.io/image/${VIETQR_BANK}-${VIETQR_ACCOUNT}-${VIETQR_TEMPLATE}.png`;
-  const params = new URLSearchParams({
-    amount: String(Math.round(amount)),
-    addInfo: `SHOPVIBE ${orderCode}`,
-    accountName: 'SHOPVIBE STORE',
-  });
-  return `${base}?${params}`;
-}
-
-// ─── component ────────────────────────────────────────────────────────────────
 export const OrderSuccessPage: React.FC = () => {
   const { orderCode } = useParams<{ orderCode: string }>();
   const navigate = useNavigate();
@@ -36,20 +20,97 @@ export const OrderSuccessPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Realtime Polling state
+  const [isPaid, setIsPaid] = useState<boolean>(false);
+  const [pollingActive, setPollingActive] = useState<boolean>(false);
+  const [momoRedirecting, setMomoRedirecting] = useState<boolean>(false);
+  const pollingRef = useRef<number | null>(null);
+
   useEffect(() => {
-    if (!orderCode) { navigate('/'); return; }
+    if (!orderCode) {
+      navigate('/');
+      return;
+    }
+
+    let isMounted = true;
+
     (async () => {
       try {
         const res = await orderService.getOrderByCode(orderCode);
-        if (res.success) setOrder(res.data);
-        else setError('Không tìm thấy thông tin đơn hàng.');
+        if (!isMounted) return;
+
+        if (res.success && res.data) {
+          setOrder(res.data);
+          const alreadyPaid = res.data.paymentStatus === 1; // Completed / Paid
+          setIsPaid(alreadyPaid);
+
+          // Nếu đơn hàng là thanh toán MoMo và chưa thanh toán
+          if (res.data.paymentMethod === 3 && !alreadyPaid) {
+            setPollingActive(true);
+          }
+        } else {
+          setError('Không tìm thấy thông tin đơn hàng.');
+        }
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : 'Lỗi kết nối.');
+        if (isMounted) setError(e instanceof Error ? e.message : 'Lỗi kết nối.');
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     })();
+
+    return () => {
+      isMounted = false;
+    };
   }, [orderCode, navigate]);
+
+  // 2. Realtime Polling: Thăm dò trạng thái thanh toán mỗi 3 giây
+  useEffect(() => {
+    if (!pollingActive || !orderCode || isPaid) return;
+
+    pollingRef.current = setInterval(async () => {
+      try {
+        const statusData = await paymentService.checkPaymentStatus(orderCode);
+        if (statusData.isPaid) {
+          setIsPaid(true);
+          setPollingActive(false);
+          // Cập nhật lại Order local state
+          setOrder((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  paymentStatus: 1,
+                  orderStatus: prev.orderStatus === 0 ? 1 : prev.orderStatus,
+                  paymentDate: statusData.paidAt ?? new Date().toISOString(),
+                }
+              : null
+          );
+        }
+      } catch {
+        // bỏ qua lỗi polling mạng ngắt quãng
+      }
+    }, 3000);
+
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, [pollingActive, orderCode, isPaid]);
+
+  const handleOpenMoMo = async () => {
+    if (!orderCode || momoRedirecting) return;
+    setMomoRedirecting(true);
+    try {
+      const res = await paymentService.createMoMoPayment(orderCode);
+      if (res.success && res.payUrl) {
+        window.location.href = res.payUrl;
+      } else {
+        alert(res.message || 'Không thể tạo phiên thanh toán MoMo.');
+      }
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Lỗi kết nối cổng MoMo.');
+    } finally {
+      setMomoRedirecting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -72,7 +133,7 @@ export const OrderSuccessPage: React.FC = () => {
     );
   }
 
-  const isBankTransfer = order.paymentMethod === 1;
+  const isMoMo = order.paymentMethod === 3;
   const statusMeta = orderStatusMeta[order.orderStatus] ?? orderStatusMeta[0];
 
   return (
@@ -82,9 +143,13 @@ export const OrderSuccessPage: React.FC = () => {
       <main style={S.main}>
         {/* ── Success banner ── */}
         <div style={S.successBanner}>
-          <div style={S.checkIcon}>✓</div>
+          <div style={isPaid ? S.checkIconSuccess : S.checkIcon}>
+            {isPaid ? '✓' : '🎉'}
+          </div>
           <div>
-            <h1 style={S.successTitle}>Đặt hàng thành công!</h1>
+            <h1 style={S.successTitle}>
+              {isPaid ? 'Thanh toán thành công!' : 'Đặt hàng thành công!'}
+            </h1>
             <p style={S.successSub}>
               Cảm ơn bạn đã mua sắm tại ShopVibe. Mã đơn hàng của bạn là{' '}
               <strong style={{ color: '#ff385c' }}>#{order.orderCode}</strong>
@@ -99,9 +164,23 @@ export const OrderSuccessPage: React.FC = () => {
             <section style={S.card}>
               <div style={S.statusRow}>
                 <span style={{ fontSize: 14, color: '#6a6a6a' }}>Trạng thái đơn hàng</span>
-                <span style={{ ...S.badge, color: statusMeta.color, background: statusMeta.bg }}>
-                  {statusMeta.label}
-                </span>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  {isMoMo && (
+                    <span
+                      style={{
+                        ...S.badge,
+                        color: isPaid ? '#15803d' : '#a21caf',
+                        background: isPaid ? '#dcfce7' : '#fdf2f8',
+                        border: isPaid ? '1px solid #bbf7d0' : '1px solid #fbcfe8',
+                      }}
+                    >
+                      {isPaid ? '● Đã thanh toán MoMo' : '⏳ Chờ thanh toán MoMo'}
+                    </span>
+                  )}
+                  <span style={{ ...S.badge, color: statusMeta.color, background: statusMeta.bg }}>
+                    {statusMeta.label}
+                  </span>
+                </div>
               </div>
               <div style={S.metaGrid}>
                 <div style={S.metaItem}>
@@ -113,7 +192,7 @@ export const OrderSuccessPage: React.FC = () => {
                   <span style={S.metaValue}>{formatDate(order.createdAt)}</span>
                 </div>
                 <div style={S.metaItem}>
-                  <span style={S.metaLabel}>Thanh toán</span>
+                  <span style={S.metaLabel}>Phương thức</span>
                   <span style={S.metaValue}>{paymentMethodLabel[order.paymentMethod]}</span>
                 </div>
                 <div style={S.metaItem}>
@@ -188,39 +267,52 @@ export const OrderSuccessPage: React.FC = () => {
           </div>
 
           {/* ── Right: VietQR or COD info ── */}
+          {/* ── Right: MoMo or COD info ── */}
           <aside style={{ position: 'sticky', top: 90 }}>
-            {isBankTransfer ? (
+            {isMoMo ? (
               <section style={S.card}>
-                <h2 style={S.sectionTitle}>Quét mã VietQR để thanh toán</h2>
-                <div style={S.qrWrap}>
-                  <img
-                    src={buildVietQRUrl(order.finalAmount, order.orderCode)}
-                    alt="VietQR"
-                    style={S.qrImg}
-                    loading="lazy"
-                  />
-                </div>
-                <div style={S.qrInfoBox}>
-                  <p style={S.qrInfoRow}>
-                    <span style={S.qrInfoLabel}>Ngân hàng</span>
-                    <strong>MB Bank</strong>
-                  </p>
-                  <p style={S.qrInfoRow}>
-                    <span style={S.qrInfoLabel}>Số tài khoản</span>
-                    <strong>{VIETQR_ACCOUNT}</strong>
-                  </p>
-                  <p style={S.qrInfoRow}>
-                    <span style={S.qrInfoLabel}>Số tiền</span>
-                    <strong style={{ color: '#ff385c' }}>{formatPrice(order.finalAmount)}</strong>
-                  </p>
-                  <p style={S.qrInfoRow}>
-                    <span style={S.qrInfoLabel}>Nội dung CK</span>
-                    <strong>SHOPVIBE {order.orderCode}</strong>
-                  </p>
-                </div>
-                <p style={{ fontSize: 12, color: '#6a6a6a', textAlign: 'center', marginTop: 12, lineHeight: 1.5 }}>
-                  Đơn hàng sẽ được xử lý sau khi chúng tôi xác nhận thanh toán (trong vòng 15 phút).
-                </p>
+                {isPaid ? (
+                  /* Giao diện khi ĐÃ THANH TOÁN THÀNH CÔNG */
+                  <div style={{ textAlign: 'center', padding: '16px 8px' }}>
+                    <div style={S.paidCelebrationIcon}>✓</div>
+                    <h2 style={{ fontSize: 18, fontWeight: 700, color: '#15803d', margin: '12px 0 6px' }}>
+                      Đã nhận thanh toán MoMo
+                    </h2>
+                    <p style={{ fontSize: 13, color: '#6a6a6a', margin: '0 0 16px', lineHeight: 1.5 }}>
+                      Giao dịch qua Ví MoMo cho đơn hàng <strong>#{order.orderCode}</strong> đã hoàn tất thành công.
+                      Đơn hàng đã được chuyển sang bộ phận đóng gói.
+                    </p>
+                    <div style={S.paidBadgeDetail}>
+                      <span>Số tiền: <strong>{formatPrice(order.finalAmount)}</strong></span>
+                      <span style={{ color: '#15803d', fontWeight: 600 }}>Hoàn tất</span>
+                    </div>
+                  </div>
+                ) : (
+                  /* Giao diện khi CHỜ THANH TOÁN MOMO */
+                  <div style={{ textAlign: 'center', padding: '12px 6px' }}>
+                    <div style={S.momoLogoWrap}>👛</div>
+                    <h2 style={{ fontSize: 18, fontWeight: 700, color: '#a21caf', margin: '10px 0 6px' }}>
+                      Thanh toán qua Ví MoMo
+                    </h2>
+                    <p style={{ fontSize: 13, color: '#6a6a6a', margin: '0 0 16px', lineHeight: 1.5 }}>
+                      Đơn hàng đang chờ thanh toán qua cổng Ví MoMo. Bạn có thể nhấn nút bên dưới để mở trang thanh toán MoMo.
+                    </p>
+
+                    <div style={{ ...S.paidBadgeDetail, marginBottom: 16 }}>
+                      <span>Số tiền: <strong style={{ color: '#ff385c' }}>{formatPrice(order.finalAmount)}</strong></span>
+                      <span style={{ color: '#b45309', fontWeight: 600 }}>Chờ thanh toán</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleOpenMoMo}
+                      disabled={momoRedirecting}
+                      style={S.momoPayBtn}
+                    >
+                      {momoRedirecting ? 'Đang kết nối MoMo...' : '🚀 Mở cổng thanh toán MoMo ngay'}
+                    </button>
+                  </div>
+                )}
               </section>
             ) : (
               <section style={S.card}>
@@ -278,6 +370,37 @@ const S: Record<string, React.CSSProperties> = {
     width: 52, height: 52, borderRadius: '50%', background: '#dcfce7', color: '#15803d',
     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 700, flexShrink: 0,
   },
+  checkIconSuccess: {
+    width: 52, height: 52, borderRadius: '50%', background: '#15803d', color: '#fff',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, fontWeight: 700, flexShrink: 0,
+    boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)',
+  },
+  simToast: {
+    display: 'flex', alignItems: 'center', gap: 10, background: '#f0fdf4', border: '1px solid #bbf7d0',
+    color: '#166534', padding: '12px 18px', borderRadius: 10, marginBottom: 16, fontSize: 14, fontWeight: 600,
+    boxShadow: '0 2px 6px rgba(22, 101, 52, 0.08)',
+  },
+  liveBadge: {
+    display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#b45309',
+    background: '#fef3c7', padding: '4px 10px', borderRadius: 9999, border: '1px solid #fde68a',
+  },
+  liveDot: {
+    width: 7, height: 7, borderRadius: '50%', background: '#f59e0b', animation: 'spin 1.5s infinite alternate',
+  },
+  paidCelebrationIcon: {
+    width: 64, height: 64, borderRadius: '50%', background: '#dcfce7', color: '#15803d',
+    fontSize: 32, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    margin: '0 auto', boxShadow: '0 6px 16px rgba(21, 128, 61, 0.15)',
+  },
+  paidBadgeDetail: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc',
+    border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 16px', fontSize: 14,
+  },
+  simulateBtn: {
+    width: '100%', padding: '10px 14px', background: '#f1f5f9', border: '1px dashed #94a3b8',
+    borderRadius: 8, color: '#334155', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    transition: 'all 150ms ease',
+  },
   successTitle: { margin: 0, fontSize: 22, fontWeight: 700, color: '#222' },
   successSub: { margin: '4px 0 0', fontSize: 14, color: '#6a6a6a', lineHeight: 1.5 },
   card: { background: '#fff', border: '1px solid #ebebeb', borderRadius: 14, padding: '24px' },
@@ -298,12 +421,15 @@ const S: Record<string, React.CSSProperties> = {
   itemName: { margin: 0, fontSize: 14, fontWeight: 500, color: '#222', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   itemVariant: { margin: '3px 0 0', fontSize: 12, color: '#6a6a6a' },
   itemPrice: { margin: 0, fontSize: 14, fontWeight: 600, color: '#222', flexShrink: 0 },
-  // VietQR
-  qrWrap: { display: 'flex', justifyContent: 'center', marginBottom: 16 },
-  qrImg: { width: 200, height: 200, borderRadius: 12, border: '1px solid #ebebeb' },
-  qrInfoBox: { background: '#f7f7f7', borderRadius: 10, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 },
-  qrInfoRow: { margin: 0, display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#3f3f3f' },
-  qrInfoLabel: { color: '#6a6a6a', fontWeight: 400 },
+  momoLogoWrap: {
+    width: 64, height: 64, borderRadius: 20, background: '#fdf2f8', display: 'flex',
+    alignItems: 'center', justifyContent: 'center', fontSize: 36, margin: '0 auto 12px', border: '1px solid #fbcfe8',
+  },
+  momoPayBtn: {
+    width: '100%', padding: '14px', background: '#a21caf', color: '#fff', border: 'none',
+    borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 150ms ease',
+    boxShadow: '0 2px 6px rgba(162, 28, 175, 0.25)',
+  },
   // COD
   codIcon: { fontSize: 48, textAlign: 'center' },
   codTimeline: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 20, padding: '0 10px' },

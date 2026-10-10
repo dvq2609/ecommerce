@@ -66,6 +66,9 @@ namespace Backend.Models
 
         public DateTime? PaymentDate { get; set; }
 
+        [MaxLength(128)]
+        public string? IdempotencyKey { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }
@@ -73,5 +76,6 @@ namespace Backend.Models
         // Navigation properties
         public virtual User User { get; set; } = null!;
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
     }
 }

@@ -9,6 +9,7 @@ namespace Backend.Repositories.OrderRepo
     {
         Task<Order?> GetByIdAsync(int orderId, int userId);
         Task<Order?> GetByCodeAsync(string orderCode, int userId);
+        Task<Order?> GetByIdempotencyKeyAsync(string idempotencyKey, int userId);
         Task<(List<Order> Items, int TotalCount)> GetPagedByUserAsync(int userId, OrderQueryDto query);
         Task<Order> CreateOrderAsync(Order order);
         Task UpdateOrderAsync(Order order);

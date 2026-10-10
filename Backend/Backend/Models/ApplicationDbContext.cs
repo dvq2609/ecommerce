@@ -30,6 +30,7 @@ namespace Backend.Models
         public DbSet<ShippingSetting> ShippingSettings { get; set; } = null!;
         public DbSet<ShippingRule> ShippingRules { get; set; } = null!;
         public DbSet<UserAddress> UserAddresses { get; set; } = null!;
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -148,6 +149,11 @@ namespace Backend.Models
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => o.IdempotencyKey)
+                .HasDatabaseName("IX_Orders_IdempotencyKey")
+                .HasFilter("[IdempotencyKey] IS NOT NULL");
+
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.Order)
                 .WithMany(o => o.OrderItems)
@@ -199,6 +205,16 @@ namespace Backend.Models
             modelBuilder.Entity<UserAddress>()
                 .HasIndex(ua => ua.UserId)
                 .HasDatabaseName("IX_UserAddresses_UserId");
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasOne(pt => pt.Order)
+                .WithMany(o => o.PaymentTransactions)
+                .HasForeignKey(pt => pt.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PaymentTransaction>()
+                .HasIndex(pt => pt.OrderCode)
+                .HasDatabaseName("IX_PaymentTransactions_OrderCode");
         }
     }
 }

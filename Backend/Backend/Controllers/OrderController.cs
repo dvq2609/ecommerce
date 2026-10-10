@@ -44,7 +44,8 @@ namespace Backend.Controllers
             try
             {
                 int userId = GetCurrentUserId();
-                var order = await _orderService.CreateOrderAsync(userId, request);
+                var idempotencyKey = Request.Headers["Idempotency-Key"].FirstOrDefault();
+                var order = await _orderService.CreateOrderAsync(userId, request, idempotencyKey);
                 return Ok(new { success = true, message = $"Đặt hàng thành công! Mã đơn: {order.OrderCode}", data = order });
             }
             catch (UnauthorizedAccessException ex)

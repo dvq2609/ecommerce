@@ -26,11 +26,16 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 export const orderService = {
-  /** Tạo đơn hàng mới từ Cart hoặc Buy Now */
-  async createOrder(payload: CreateOrderRequest): Promise<OrderApiResponse> {
+  /** Tạo đơn hàng mới từ Cart hoặc Buy Now, hỗ trợ Idempotency-Key */
+  async createOrder(payload: CreateOrderRequest, idempotencyKey?: string): Promise<OrderApiResponse> {
+    const headers = getAuthHeaders() as Record<string, string>;
+    if (idempotencyKey) {
+      headers['Idempotency-Key'] = idempotencyKey;
+    }
+
     const res = await fetch(API_BASE, {
       method: 'POST',
-      headers: getAuthHeaders(),
+      headers,
       body: JSON.stringify(payload),
     });
     return handleResponse<OrderApiResponse>(res);

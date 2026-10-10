@@ -191,7 +191,8 @@ namespace Backend.Services.PaymentService
             var redirectUrl = _configuration["MoMo:RedirectUrl"] ?? "http://localhost:5173/momo-callback";
             var ipnUrl = _configuration["MoMo:IpnUrl"] ?? "https://webhook.site/placeholder";
 
-            var requestId = Guid.NewGuid().ToString();
+            // Idempotent requestId gắn với OrderCode để MoMo nhận diện đúng giao dịch gốc khi retry
+            var requestId = $"REQ_{order.OrderCode}";
             var amount = Convert.ToInt64(decimal.Round(order.FinalAmount, 0, MidpointRounding.AwayFromZero)).ToString();
             var orderInfo = $"Thanh toan don hang ShopVibe #{order.OrderCode}";
             var extraData = "";

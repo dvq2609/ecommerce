@@ -75,6 +75,12 @@ export const CheckoutPage: React.FC = () => {
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [idempotencyKey] = useState<string>(() => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return 'IDEM_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+  });
 
   const effectiveItems = useMemo(() => {
     if (buyNowItem) {
@@ -219,7 +225,7 @@ export const CheckoutPage: React.FC = () => {
     };
 
     try {
-      const res = await orderService.createOrder(payload);
+      const res = await orderService.createOrder(payload, idempotencyKey);
       if (res.success && res.data) {
         if (!buyNowItem) {
           await refreshCart();

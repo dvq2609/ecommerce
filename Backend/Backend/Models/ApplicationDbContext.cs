@@ -149,6 +149,11 @@ namespace Backend.Models
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => o.IdempotencyKey)
+                .HasDatabaseName("IX_Orders_IdempotencyKey")
+                .HasFilter("[IdempotencyKey] IS NOT NULL");
+
             modelBuilder.Entity<OrderItem>()
                 .HasOne(oi => oi.Order)
                 .WithMany(o => o.OrderItems)

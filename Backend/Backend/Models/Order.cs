@@ -66,6 +66,9 @@ namespace Backend.Models
 
         public DateTime? PaymentDate { get; set; }
 
+        [MaxLength(128)]
+        public string? IdempotencyKey { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? UpdatedAt { get; set; }

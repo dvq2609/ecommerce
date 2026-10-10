@@ -37,8 +37,20 @@ namespace Backend.Services.OrderService
         // ─────────────────────────────────────────────────────────────────────
         // CREATE ORDER (Transactional: validate stock → create order → deduct stock → clean cart)
         // ─────────────────────────────────────────────────────────────────────
-        public async Task<OrderResponseDto> CreateOrderAsync(int userId, CreateOrderRequestDto request)
+        public async Task<OrderResponseDto> CreateOrderAsync(int userId, CreateOrderRequestDto request, string? idempotencyKey = null)
         {
+            // Kiểm tra IdempotencyKey để tránh tạo đơn hàng lặp lại (retry/double-click)
+            if (!string.IsNullOrWhiteSpace(idempotencyKey))
+            {
+                var existingOrder = await _orderRepository.GetByIdempotencyKeyAsync(idempotencyKey.Trim(), userId);
+                if (existingOrder != null)
+                {
+                    _logger.LogWarning("Phát hiện request trùng lặp với IdempotencyKey '{IdempotencyKey}' từ User {UserId}. Trả về đơn hàng cũ {OrderCode}.",
+                        idempotencyKey, userId, existingOrder.OrderCode);
+                    return MapToDto(existingOrder);
+                }
+            }
+
             await using var transaction = await _orderRepository.BeginTransactionAsync();
             try
             {
@@ -150,6 +162,7 @@ namespace Backend.Services.OrderService
                     PaymentMethod = request.PaymentMethod,
                     PaymentStatus = PaymentStatus.Pending,
                     OrderStatus = OrderStatus.Pending,
+                    IdempotencyKey = string.IsNullOrWhiteSpace(idempotencyKey) ? null : idempotencyKey.Trim(),
                     CreatedAt = DateTime.UtcNow,
                     OrderItems = orderItems
                 };

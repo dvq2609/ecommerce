@@ -29,5 +29,12 @@ namespace Backend.Services.OrderService
         /// Hủy đơn hàng (chỉ khi ở trạng thái Pending hoặc Confirmed) và hoàn lại tồn kho.
         /// </summary>
         Task<OrderResponseDto> CancelOrderAsync(int userId, int orderId, string? cancelReason = null);
+
+        // ── Admin & Seller Operations ─────────────────────────────────────────
+        Task<AdminPagedOrderResultDto> GetAdminOrdersPagedAsync(AdminOrderQueryDto query);
+        Task<AdminOrderDetailDto?> GetAdminOrderDetailAsync(int orderId);
+        Task<AdminOrderStatsDto> GetAdminOrderStatsAsync();
+        Task<AdminOrderDetailDto> UpdateOrderStatusByAdminAsync(int orderId, AdminUpdateOrderStatusDto dto);
+        Task<AdminOrderDetailDto> UpdatePaymentStatusByAdminAsync(int orderId, AdminUpdatePaymentStatusDto dto);
     }
 }

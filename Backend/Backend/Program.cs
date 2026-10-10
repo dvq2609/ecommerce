@@ -76,6 +76,13 @@ builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
+// Reviews & Notifications Management
+builder.Services.AddScoped<Backend.Services.NotificationService.INotificationService, Backend.Services.NotificationService.NotificationService>();
+builder.Services.AddScoped<Backend.Services.ReviewService.IReviewService, Backend.Services.ReviewService.ReviewService>();
+
+// Realtime SignalR
+builder.Services.AddSignalR();
+
 // 4. Configure Authentication (JWT + Google OAuth 2.0)
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key is missing in configuration.");
@@ -125,6 +132,21 @@ authBuilder.AddJwtBearer(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+
+    // Hỗ trợ lấy JWT Token từ Query String cho kết nối WebSocket SignalR
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/notification"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -135,7 +157,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
-        policy.WithOrigins(frontendUrl, "http://localhost:3000")
+        policy.WithOrigins(frontendUrl, "http://localhost:3000", "http://localhost:5174", "http://localhost:5175")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -192,6 +214,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<Backend.Hubs.NotificationHub>("/hubs/notification");
 
 app.Run();
 

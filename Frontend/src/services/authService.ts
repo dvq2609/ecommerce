@@ -123,6 +123,10 @@ export const authService = {
     localStorage.removeItem('user');
   },
 
+  getToken(): string | null {
+    return localStorage.getItem('accessToken');
+  },
+
   getCurrentUser() {
     const userStr = localStorage.getItem('user');
     if (!userStr) return null;

@@ -299,6 +299,141 @@ namespace Backend.Services.OrderService
         }
 
         // ─────────────────────────────────────────────────────────────────────
+        // ADMIN & SELLER SERVICE METHODS
+        // ─────────────────────────────────────────────────────────────────────
+        public async Task<AdminPagedOrderResultDto> GetAdminOrdersPagedAsync(AdminOrderQueryDto query)
+        {
+            var (items, totalCount) = await _orderRepository.GetPagedForAdminAsync(query);
+
+            return new AdminPagedOrderResultDto
+            {
+                Items = items.Select(MapToAdminDto).ToList(),
+                TotalCount = totalCount,
+                PageNumber = query.PageNumber > 0 ? query.PageNumber : 1,
+                PageSize = query.PageSize > 0 ? query.PageSize : 10
+            };
+        }
+
+        public async Task<AdminOrderDetailDto?> GetAdminOrderDetailAsync(int orderId)
+        {
+            var order = await _orderRepository.GetByIdForAdminAsync(orderId);
+            return order == null ? null : MapToAdminDto(order);
+        }
+
+        public async Task<AdminOrderStatsDto> GetAdminOrderStatsAsync()
+        {
+            return await _orderRepository.GetOrderStatsAsync();
+        }
+
+        public async Task<AdminOrderDetailDto> UpdateOrderStatusByAdminAsync(int orderId, AdminUpdateOrderStatusDto dto)
+        {
+            var order = await _orderRepository.GetByIdForAdminAsync(orderId);
+            if (order == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy đơn hàng với ID #{orderId}");
+            }
+
+            var oldStatus = order.OrderStatus;
+            var newStatus = dto.NewStatus;
+
+            if (oldStatus == newStatus)
+            {
+                return MapToAdminDto(order);
+            }
+
+            // Quy tắc máy trạng thái (State machine rules)
+            if (oldStatus == OrderStatus.Cancelled)
+            {
+                throw new InvalidOperationException("Đơn hàng đã hủy không thể thay đổi trạng thái khác.");
+            }
+
+            if (oldStatus == OrderStatus.Delivered && newStatus != OrderStatus.Refunded)
+            {
+                throw new InvalidOperationException("Đơn hàng đã giao thành công chỉ có thể chuyển sang trạng thái Hoàn tiền (Refunded).");
+            }
+
+            if (newStatus == OrderStatus.Cancelled && oldStatus == OrderStatus.Shipping)
+            {
+                throw new InvalidOperationException("Đơn hàng đang giao không thể hủy trực tiếp. Vui lòng liên hệ đơn vị vận chuyển.");
+            }
+
+            await using var transaction = await _orderRepository.BeginTransactionAsync();
+            try
+            {
+                // Nếu Admin HỦY đơn khi chưa giao -> Tự động hoàn lại tồn kho
+                if (newStatus == OrderStatus.Cancelled &&
+                    (oldStatus == OrderStatus.Pending || oldStatus == OrderStatus.Confirmed || oldStatus == OrderStatus.Processing))
+                {
+                    foreach (var item in order.OrderItems)
+                    {
+                        var restored = await _orderRepository.RestoreStockAsync(item.ProductVariantId, item.ProductId, item.Quantity);
+                        if (!restored)
+                        {
+                            _logger.LogWarning("Không thể hoàn tồn kho khi Admin hủy đơn: Item={ProductId}, Variant={VariantId}, Qty={Qty}",
+                                item.ProductId, item.ProductVariantId, item.Quantity);
+                        }
+                    }
+                }
+
+                // Nếu đơn COD chuyển sang ĐÃ GIAO (Delivered) -> Tự động đánh dấu đã thanh toán
+                if (newStatus == OrderStatus.Delivered && order.PaymentMethod == PaymentMethod.COD && order.PaymentStatus != PaymentStatus.Completed)
+                {
+                    order.PaymentStatus = PaymentStatus.Completed;
+                    order.PaymentDate = DateTime.UtcNow;
+                }
+
+                order.OrderStatus = newStatus;
+                if (!string.IsNullOrWhiteSpace(dto.Note))
+                {
+                    order.Note = string.IsNullOrWhiteSpace(order.Note)
+                        ? $"[Admin: {dto.Note.Trim()}]"
+                        : $"{order.Note} | [Admin: {dto.Note.Trim()}]";
+                }
+
+                await _orderRepository.UpdateOrderAsync(order);
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Admin đã chuyển trạng thái đơn {OrderCode} từ {OldStatus} sang {NewStatus}",
+                    order.OrderCode, oldStatus, newStatus);
+
+                return MapToAdminDto(order);
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<AdminOrderDetailDto> UpdatePaymentStatusByAdminAsync(int orderId, AdminUpdatePaymentStatusDto dto)
+        {
+            var order = await _orderRepository.GetByIdForAdminAsync(orderId);
+            if (order == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy đơn hàng với ID #{orderId}");
+            }
+
+            order.PaymentStatus = dto.NewPaymentStatus;
+            if (dto.NewPaymentStatus == PaymentStatus.Completed && !order.PaymentDate.HasValue)
+            {
+                order.PaymentDate = DateTime.UtcNow;
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.Note))
+            {
+                order.Note = string.IsNullOrWhiteSpace(order.Note)
+                    ? $"[Admin TT: {dto.Note.Trim()}]"
+                    : $"{order.Note} | [Admin TT: {dto.Note.Trim()}]";
+            }
+
+            await _orderRepository.UpdateOrderAsync(order);
+            _logger.LogInformation("Admin đã cập nhật trạng thái thanh toán đơn {OrderCode} thành {Status}",
+                order.OrderCode, dto.NewPaymentStatus);
+
+            return MapToAdminDto(order);
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
         // PRIVATE HELPERS
         // ─────────────────────────────────────────────────────────────────────
         private static string GenerateOrderCode()
@@ -319,6 +454,35 @@ namespace Backend.Services.OrderService
             OrderStatus.Refunded => "Đã hoàn tiền",
             _ => "Không xác định"
         };
+
+        private static AdminOrderDetailDto MapToAdminDto(Order order)
+        {
+            var baseDto = MapToDto(order);
+            return new AdminOrderDetailDto
+            {
+                OrderId = baseDto.OrderId,
+                UserId = baseDto.UserId,
+                OrderCode = baseDto.OrderCode,
+                RecipientName = baseDto.RecipientName,
+                RecipientPhone = baseDto.RecipientPhone,
+                ShippingAddress = baseDto.ShippingAddress,
+                Note = baseDto.Note,
+                TotalAmount = baseDto.TotalAmount,
+                ShippingFee = baseDto.ShippingFee,
+                DiscountAmount = baseDto.DiscountAmount,
+                FinalAmount = baseDto.FinalAmount,
+                PaymentMethod = baseDto.PaymentMethod,
+                PaymentStatus = baseDto.PaymentStatus,
+                OrderStatus = baseDto.OrderStatus,
+                PaymentDate = baseDto.PaymentDate,
+                CreatedAt = baseDto.CreatedAt,
+                UpdatedAt = baseDto.UpdatedAt,
+                OrderItems = baseDto.OrderItems,
+                CustomerName = order.User?.FullName,
+                CustomerEmail = order.User?.Email,
+                CustomerPhone = order.User?.PhoneNumber
+            };
+        }
 
         private static OrderResponseDto MapToDto(Order order)
         {

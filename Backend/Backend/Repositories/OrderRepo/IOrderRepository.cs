@@ -11,6 +11,12 @@ namespace Backend.Repositories.OrderRepo
         Task<Order?> GetByCodeAsync(string orderCode, int userId);
         Task<Order?> GetByIdempotencyKeyAsync(string idempotencyKey, int userId);
         Task<(List<Order> Items, int TotalCount)> GetPagedByUserAsync(int userId, OrderQueryDto query);
+
+        // Admin & Seller methods
+        Task<Order?> GetByIdForAdminAsync(int orderId);
+        Task<(List<Order> Items, int TotalCount)> GetPagedForAdminAsync(AdminOrderQueryDto query);
+        Task<AdminOrderStatsDto> GetOrderStatsAsync();
+
         Task<Order> CreateOrderAsync(Order order);
         Task UpdateOrderAsync(Order order);
         Task<bool> DeductStockAsync(int? variantId, int productId, int quantity);

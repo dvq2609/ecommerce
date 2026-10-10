@@ -15,6 +15,8 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
   reviews,
 }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showAllReviewsModal, setShowAllReviewsModal] = useState<boolean>(false);
+  const [starFilter, setStarFilter] = useState<number | 'all'>('all');
 
   return (
     <div
@@ -228,7 +230,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
       {/* Button to see all reviews */}
       <button
         type="button"
-        onClick={() => alert(`Đang tải toàn bộ ${ratingCount} đánh giá từ khách hàng`)}
+        onClick={() => setShowAllReviewsModal(true)}
         style={{
           width: '100%',
           padding: '12px',
@@ -242,6 +244,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
           justifyContent: 'center',
           gap: '6px',
           border: '1px solid var(--color-border-subtle)',
+          cursor: 'pointer',
           transition: 'background-color 0.15s ease',
         }}
         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-container)')}
@@ -252,6 +255,212 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
           chevron_right
         </span>
       </button>
+
+      {/* ════════════ MODAL: TOÀN BỘ ĐÁNH GIÁ TỪ KHÁCH HÀNG ════════════ */}
+      {showAllReviewsModal && (
+        <div
+          onClick={() => setShowAllReviewsModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            backdropFilter: 'blur(4px)',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: '680px',
+              maxHeight: '85vh',
+              backgroundColor: '#ffffff',
+              borderRadius: '20px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '18px 24px',
+                borderBottom: '1px solid #f3f4f6',
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#111827' }}>
+                  Đánh Giá Từ Khách Hàng
+                </h3>
+                <span style={{ fontSize: '13px', color: '#6b7280' }}>
+                  {ratingCount} đánh giá • Điểm trung bình {rating} / 5.0 ★
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAllReviewsModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '20px',
+                  color: '#9ca3af',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '50%',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Filter Tags */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '8px',
+                padding: '12px 24px',
+                backgroundColor: '#f9fafb',
+                borderBottom: '1px solid #f3f4f6',
+                flexWrap: 'wrap',
+              }}
+            >
+              {(['all', 5, 4, 3, 2, 1] as const).map((filter) => {
+                const isActive = starFilter === filter;
+                return (
+                  <button
+                    key={filter}
+                    type="button"
+                    onClick={() => setStarFilter(filter)}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '9999px',
+                      fontSize: '12.5px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      border: isActive ? '1px solid #ef4444' : '1px solid #e5e7eb',
+                      backgroundColor: isActive ? '#fef2f2' : '#ffffff',
+                      color: isActive ? '#dc2626' : '#4b5563',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {filter === 'all' ? 'Tất cả' : `${filter} Sao`}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Modal Reviews List */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '20px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+              }}
+            >
+              {reviews
+                .filter((r) => (starFilter === 'all' ? true : r.rating === starFilter))
+                .map((rev) => (
+                  <div
+                    key={rev.id}
+                    style={{
+                      padding: '16px',
+                      borderRadius: '12px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #f3f4f6',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div
+                          style={{
+                            width: '34px',
+                            height: '34px',
+                            borderRadius: '50%',
+                            backgroundColor: '#fee2e2',
+                            color: '#dc2626',
+                            fontWeight: 700,
+                            fontSize: '13px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {rev.userName.charAt(0)}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#1f2937' }}>
+                            {rev.userName}
+                          </div>
+                          {rev.variantInfo && (
+                            <div style={{ fontSize: '12px', color: '#6b7280' }}>Phân loại: {rev.variantInfo}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '2px', color: '#f59e0b', fontSize: '14px' }}>
+                        {'★'.repeat(rev.rating)}
+                        {'☆'.repeat(5 - rev.rating)}
+                      </div>
+                    </div>
+
+                    <p style={{ margin: '4px 0 0', fontSize: '13.5px', color: '#374151', lineHeight: '1.5' }}>
+                      {rev.comment}
+                    </p>
+
+                    {rev.userPhotos && rev.userPhotos.length > 0 && (
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                        {rev.userPhotos.map((photo, pIdx) => (
+                          <button
+                            key={pIdx}
+                            type="button"
+                            onClick={() => setSelectedImage(photo)}
+                            style={{
+                              width: '64px',
+                              height: '64px',
+                              borderRadius: '8px',
+                              overflow: 'hidden',
+                              border: '1px solid #e5e7eb',
+                              cursor: 'pointer',
+                              padding: 0,
+                            }}
+                          >
+                            <img
+                              src={photo}
+                              alt="Ảnh phản hồi"
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <div style={{ fontSize: '11.5px', color: '#9ca3af', marginTop: '2px' }}>{rev.timeAgo}</div>
+                  </div>
+                ))}
+
+              {reviews.filter((r) => (starFilter === 'all' ? true : r.rating === starFilter)).length === 0 && (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9ca3af', fontSize: '14px' }}>
+                  Không có đánh giá nào {starFilter !== 'all' ? `cho mức ${starFilter} sao` : ''}.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Photo Lightbox Modal */}
       {selectedImage && (

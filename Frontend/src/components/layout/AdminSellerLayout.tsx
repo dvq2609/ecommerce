@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
+import { NotificationBell } from '../notification/NotificationBell';
 
 interface AdminSellerLayoutProps {
   children: React.ReactNode;
@@ -45,13 +46,13 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
   const navItems: NavGroup[] = isAdmin
     ? [
         {
-          group: 'Quy chuẩn hệ thống',
+          group: 'Đơn hàng & Giao vận',
           items: [
             {
-              label: 'Bảng kích cỡ (Size Guide)',
-              path: '/admin/sizes',
-              icon: 'straighten',
-              badge: 'Chuẩn sàn',
+              label: 'Quản lý Đơn hàng',
+              path: '/admin/orders',
+              icon: 'receipt_long',
+              badge: 'Toàn sàn',
             },
             {
               label: 'Cước vận chuyển (Shipping)',
@@ -61,8 +62,29 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
             },
           ],
         },
+        {
+          group: 'Quy chuẩn hệ thống',
+          items: [
+            {
+              label: 'Bảng kích cỡ (Size Guide)',
+              path: '/admin/sizes',
+              icon: 'straighten',
+              badge: 'Chuẩn sàn',
+            },
+          ],
+        },
       ]
     : [
+        {
+          group: 'Đơn hàng & Giao vận',
+          items: [
+            {
+              label: 'Quản lý Đơn hàng',
+              path: '/admin/orders',
+              icon: 'receipt_long',
+            },
+          ],
+        },
         {
           group: 'Kinh doanh sản phẩm',
           items: [
@@ -386,7 +408,8 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <NotificationBell />
             <span
               style={{
                 fontSize: '12px',

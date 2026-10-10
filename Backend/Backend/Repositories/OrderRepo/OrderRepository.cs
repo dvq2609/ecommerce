@@ -94,6 +94,121 @@ namespace Backend.Repositories.OrderRepo
             return (items, totalCount);
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        // ADMIN / SELLER REPOSITORY METHODS
+        // ─────────────────────────────────────────────────────────────────────
+        public async Task<Order?> GetByIdForAdminAsync(int orderId)
+        {
+            return await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                        .ThenInclude(p => p.Images)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.ProductVariant)
+                        .ThenInclude(pv => pv!.Color)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.ProductVariant)
+                        .ThenInclude(pv => pv!.Size)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+        }
+
+        public async Task<(List<Order> Items, int TotalCount)> GetPagedForAdminAsync(AdminOrderQueryDto query)
+        {
+            var dbQuery = _context.Orders
+                .AsNoTracking()
+                .Include(o => o.User)
+                .Include(o => o.OrderItems)
+                .AsQueryable();
+
+            if (query.Status.HasValue)
+            {
+                dbQuery = dbQuery.Where(o => o.OrderStatus == query.Status.Value);
+            }
+
+            if (query.PaymentStatus.HasValue)
+            {
+                dbQuery = dbQuery.Where(o => o.PaymentStatus == query.PaymentStatus.Value);
+            }
+
+            if (query.PaymentMethod.HasValue)
+            {
+                dbQuery = dbQuery.Where(o => o.PaymentMethod == query.PaymentMethod.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.Search))
+            {
+                var keyword = query.Search.Trim().ToLower();
+                dbQuery = dbQuery.Where(o => o.OrderCode.ToLower().Contains(keyword) ||
+                                             o.RecipientName.ToLower().Contains(keyword) ||
+                                             o.RecipientPhone.Contains(keyword) ||
+                                             (o.User != null && o.User.Email.ToLower().Contains(keyword)));
+            }
+
+            if (query.FromDate.HasValue)
+            {
+                dbQuery = dbQuery.Where(o => o.CreatedAt >= query.FromDate.Value);
+            }
+
+            if (query.ToDate.HasValue)
+            {
+                dbQuery = dbQuery.Where(o => o.CreatedAt <= query.ToDate.Value);
+            }
+
+            var totalCount = await dbQuery.CountAsync();
+
+            // Sắp xếp
+            if (query.SortBy?.ToLower() == "finalamount")
+            {
+                dbQuery = query.IsDescending
+                    ? dbQuery.OrderByDescending(o => o.FinalAmount)
+                    : dbQuery.OrderBy(o => o.FinalAmount);
+            }
+            else
+            {
+                dbQuery = query.IsDescending
+                    ? dbQuery.OrderByDescending(o => o.CreatedAt)
+                    : dbQuery.OrderBy(o => o.CreatedAt);
+            }
+
+            var pageNumber = query.PageNumber > 0 ? query.PageNumber : 1;
+            var pageSize = query.PageSize > 0 ? query.PageSize : 10;
+
+            var items = await dbQuery
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
+
+        public async Task<AdminOrderStatsDto> GetOrderStatsAsync()
+        {
+            var stats = new AdminOrderStatsDto();
+
+            var statusCounts = await _context.Orders
+                .AsNoTracking()
+                .GroupBy(o => o.OrderStatus)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            stats.TotalOrders = statusCounts.Sum(x => x.Count);
+            stats.PendingOrders = statusCounts.FirstOrDefault(x => x.Status == OrderStatus.Pending)?.Count ?? 0;
+            stats.ConfirmedOrders = statusCounts.FirstOrDefault(x => x.Status == OrderStatus.Confirmed)?.Count ?? 0;
+            stats.ProcessingOrders = statusCounts.FirstOrDefault(x => x.Status == OrderStatus.Processing)?.Count ?? 0;
+            stats.ShippingOrders = statusCounts.FirstOrDefault(x => x.Status == OrderStatus.Shipping)?.Count ?? 0;
+            stats.DeliveredOrders = statusCounts.FirstOrDefault(x => x.Status == OrderStatus.Delivered)?.Count ?? 0;
+            stats.CancelledOrders = statusCounts.FirstOrDefault(x => x.Status == OrderStatus.Cancelled)?.Count ?? 0;
+            stats.RefundedOrders = statusCounts.FirstOrDefault(x => x.Status == OrderStatus.Refunded)?.Count ?? 0;
+
+            stats.TotalRevenue = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.OrderStatus == OrderStatus.Delivered)
+                .SumAsync(o => o.FinalAmount);
+
+            return stats;
+        }
+
         public async Task<Order> CreateOrderAsync(Order order)
         {
             await _context.Orders.AddAsync(order);

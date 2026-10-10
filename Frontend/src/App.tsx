@@ -12,6 +12,7 @@ import { SizesManagePage } from './pages/SizesManagePage';
 import { AdminShippingPage } from './pages/AdminShippingPage';
 import { AdminOrdersPage } from './pages/AdminOrdersPage';
 import { SellerReviewsPage } from './pages/SellerReviewsPage';
+import { SellerAnalyticsPage } from './pages/SellerAnalyticsPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
@@ -91,7 +92,15 @@ export const App: React.FC = () => {
             </ProtectedRoute>
           }
         />
-        <Route path="/seller" element={<Navigate to="/seller/products/new" replace />} />
+        <Route
+          path="/seller/analytics"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'seller']}>
+              <SellerAnalyticsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/seller" element={<Navigate to="/seller/analytics" replace />} />
 
         {/* Legacy / Direct Route Compatibility */}
         <Route path="/add-product" element={<Navigate to="/seller/products/new" replace />} />

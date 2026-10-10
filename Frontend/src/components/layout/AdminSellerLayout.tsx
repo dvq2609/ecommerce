@@ -81,6 +81,11 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
           group: 'Đơn hàng & Giao vận',
           items: [
             {
+              label: 'Báo cáo doanh thu',
+              path: '/seller/analytics',
+              icon: 'query_stats',
+            },
+            {
               label: 'Quản lý Đơn hàng',
               path: '/admin/orders',
               icon: 'receipt_long',

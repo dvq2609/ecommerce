@@ -101,6 +101,11 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
           group: 'Kinh doanh sản phẩm',
           items: [
             {
+              label: 'Quản lý kho hàng',
+              path: '/seller/inventory',
+              icon: 'inventory_2',
+            },
+            {
               label: 'Đăng bán sản phẩm mới',
               path: '/seller/products/new',
               icon: 'add_box',

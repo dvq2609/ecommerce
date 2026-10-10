@@ -13,6 +13,7 @@ import { AdminShippingPage } from './pages/AdminShippingPage';
 import { AdminOrdersPage } from './pages/AdminOrdersPage';
 import { SellerReviewsPage } from './pages/SellerReviewsPage';
 import { SellerAnalyticsPage } from './pages/SellerAnalyticsPage';
+import { SellerInventoryPage } from './pages/SellerInventoryPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
@@ -97,6 +98,14 @@ export const App: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['admin', 'seller']}>
               <SellerAnalyticsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/seller/inventory"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'seller']}>
+              <SellerInventoryPage />
             </ProtectedRoute>
           }
         />

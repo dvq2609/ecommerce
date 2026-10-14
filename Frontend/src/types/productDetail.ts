@@ -57,6 +57,8 @@ export interface ProductVariantItem {
 
 export interface ProductDetailData {
   id: string;
+  sellerId?: number;
+  sellerName?: string;
   sku: string;
   title: string;
   slug?: string;

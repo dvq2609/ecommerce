@@ -86,6 +86,9 @@ builder.Services.AddScoped<Backend.Services.AnalyticsService.ISellerAnalyticsSer
 // Seller Inventory Management
 builder.Services.AddScoped<Backend.Services.InventoryService.ISellerInventoryService, Backend.Services.InventoryService.SellerInventoryService>();
 
+// Live Chat Management
+builder.Services.AddScoped<Backend.Services.ChatService.IChatService, Backend.Services.ChatService.ChatService>();
+
 // Realtime SignalR
 builder.Services.AddSignalR();
 
@@ -146,7 +149,8 @@ authBuilder.AddJwtBearer(options =>
         {
             var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
-            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/notification"))
+            if (!string.IsNullOrEmpty(accessToken) && 
+                (path.StartsWithSegments("/hubs/notification") || path.StartsWithSegments("/hubs/chat")))
             {
                 context.Token = accessToken;
             }
@@ -221,6 +225,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<Backend.Hubs.NotificationHub>("/hubs/notification");
+app.MapHub<Backend.Hubs.ChatHub>("/hubs/chat");
 
 app.Run();
 

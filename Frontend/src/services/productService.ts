@@ -193,6 +193,8 @@ export const productService = {
 
     return {
       id: d.productId?.toString() || idOrSlug,
+      sellerId: d.sellerId,
+      sellerName: d.sellerName,
       sku: d.sku || `VIBE-${d.productId || 'SKU'}`,
       title: d.title || d.productName || 'Sản phẩm ShopVibe',
       slug: d.slug || idOrSlug,

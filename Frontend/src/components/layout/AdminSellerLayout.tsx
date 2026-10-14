@@ -47,82 +47,87 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
   // - Seller: Quản lý Đơn hàng, Đánh giá của khách, Đăng bán sản phẩm, Bảng màu sắc
   const navItems: NavGroup[] = isAdmin
     ? [
-        {
-          group: 'Đơn hàng & Giao vận',
-          items: [
-            {
-              label: 'Quản lý Đơn hàng',
-              path: '/admin/orders',
-              icon: 'receipt_long',
-              badge: 'Toàn sàn',
-            },
-            {
-              label: 'Cước vận chuyển (Shipping)',
-              path: '/admin/shipping',
-              icon: 'local_shipping',
-              badge: 'Freeship',
-            },
-          ],
-        },
-        {
-          group: 'Quy chuẩn hệ thống',
-          items: [
-            {
-              label: 'Bảng kích cỡ (Size Guide)',
-              path: '/admin/sizes',
-              icon: 'straighten',
-              badge: 'Chuẩn sàn',
-            },
-          ],
-        },
-      ]
+      {
+        group: 'Đơn hàng & Giao vận',
+        items: [
+          {
+            label: 'Quản lý Đơn hàng',
+            path: '/admin/orders',
+            icon: 'receipt_long',
+
+          },
+          {
+            label: 'Cước vận chuyển (Shipping)',
+            path: '/admin/shipping',
+            icon: 'local_shipping',
+
+          },
+        ],
+      },
+      {
+        group: 'Quy chuẩn hệ thống',
+        items: [
+          {
+            label: 'Bảng kích cỡ (Size Guide)',
+            path: '/admin/sizes',
+            icon: 'straighten',
+
+          },
+        ],
+      },
+    ]
     : [
-        {
-          group: 'Đơn hàng & Giao vận',
-          items: [
-            {
-              label: 'Báo cáo doanh thu',
-              path: '/seller/analytics',
-              icon: 'query_stats',
-            },
-            {
-              label: 'Quản lý Đơn hàng',
-              path: '/admin/orders',
-              icon: 'receipt_long',
-            },
-            {
-              label: 'Đánh giá của khách',
-              path: '/seller/reviews',
-              icon: 'reviews',
-            },
-          ],
-        },
-        {
-          group: 'Kinh doanh sản phẩm',
-          items: [
-            {
-              label: 'Quản lý kho hàng',
-              path: '/seller/inventory',
-              icon: 'inventory_2',
-            },
-            {
-              label: 'Đăng bán sản phẩm mới',
-              path: '/seller/products/new',
-              icon: 'add_box',
-            },
-          ],
-        },
-        {
-          group: 'Thuộc tính thiết kế',
-          items: [
-            {
-              label: 'Bảng màu sắc (Color)',
-              path: '/seller/colors',
-              icon: 'palette',
-            },
-          ],
-        },
-      ];
+      {
+        group: 'Đơn hàng & Giao vận',
+        items: [
+          {
+            label: 'Báo cáo doanh thu',
+            path: '/seller/analytics',
+            icon: 'query_stats',
+          },
+          {
+            label: 'Quản lý Đơn hàng',
+            path: '/admin/orders',
+            icon: 'receipt_long',
+          },
+          {
+            label: 'Đánh giá của khách',
+            path: '/seller/reviews',
+            icon: 'reviews',
+          },
+          {
+            label: 'Tin nhắn khách hàng',
+            path: '/seller/messages',
+            icon: 'chat',
+          },
+        ],
+      },
+      {
+        group: 'Kinh doanh sản phẩm',
+        items: [
+          {
+            label: 'Quản lý kho hàng',
+            path: '/seller/inventory',
+            icon: 'inventory_2',
+          },
+          {
+            label: 'Đăng bán sản phẩm mới',
+            path: '/seller/products/new',
+            icon: 'add_box',
+          },
+        ],
+      },
+      {
+        group: 'Thuộc tính thiết kế',
+        items: [
+          {
+            label: 'Bảng màu sắc (Color)',
+            path: '/seller/colors',
+            icon: 'palette',
+          },
+        ],
+      },
+    ];
 
   const toggleSidebar = () => {
     if (window.innerWidth < 768) {

@@ -12,6 +12,7 @@ import { ProductReviewsSection } from '../components/product-detail/ProductRevie
 import { ProductRecommendations } from '../components/product-detail/ProductRecommendations';
 import { ProductDetailBottomBar } from '../components/product-detail/ProductDetailBottomBar';
 import { useCart } from '../context/CartContext';
+import { authService } from '../services/authService';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -211,8 +212,27 @@ export const ProductDetailPage: React.FC = () => {
     });
   };
 
+  const currentUser = authService.getCurrentUser();
+  const isSellerOwner = useMemo(() => {
+    if (!currentUser || !product?.sellerId) return false;
+    const uid = currentUser.userId || currentUser.id || currentUser.UserId;
+    return Number(uid) === Number(product.sellerId);
+  }, [currentUser, product?.sellerId]);
+
   const handleChat = () => {
-    alert('Đang kết nối trung tâm tư vấn viên ShopVibe...');
+    if (!product?.sellerId) return;
+    window.dispatchEvent(
+      new CustomEvent('open-customer-chat', {
+        detail: {
+          sellerId: product.sellerId,
+          sellerName: product.sellerName,
+          productId: Number(product.id),
+          productTitle: product.title,
+          productPrice: product.price,
+          productImage: product.images?.[0] || '',
+        },
+      })
+    );
   };
 
   const handleSelectRecommended = (item: RecommendedProduct) => {
@@ -449,6 +469,38 @@ export const ProductDetailPage: React.FC = () => {
                 {isOutOfStock ? 'Hết hàng' : 'Mua ngay'}
               </button>
             </div>
+
+            {/* Nút Chat Với Người Bán / Shop (Ẩn nếu người xem chính là người bán sản phẩm này) */}
+            {product.sellerId && !isSellerOwner && (
+              <button
+                type="button"
+                onClick={handleChat}
+                style={{
+                  width: '100%',
+                  height: '42px',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1px solid var(--color-border-subtle)',
+                  backgroundColor: 'var(--color-surface-container-low)',
+                  color: 'var(--color-on-surface)',
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  marginTop: '10px',
+                  transition: 'background-color 0.15s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-container-high)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-container-low)')}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ff385c' }}>
+                  chat
+                </span>
+                <span>Chat ngay với người bán</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -481,6 +533,7 @@ export const ProductDetailPage: React.FC = () => {
         onChat={handleChat}
         onAddToCart={handleAddToCart}
         onBuyNow={handleBuyNow}
+        isSellerOwner={isSellerOwner}
       />
 
       {/* Toast Confirmation when adding to cart */}

@@ -53,6 +53,9 @@ function getAuthHeaders(): HeadersInit {
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
+  if (res.status === 401) {
+    throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.');
+  }
   const data = await res.json().catch(() => null);
   if (!res.ok) {
     const msg = data?.message ?? 'Đã xảy ra lỗi khi kết nối máy chủ quản lý kho.';

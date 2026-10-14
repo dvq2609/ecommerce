@@ -14,6 +14,8 @@ import { AdminOrdersPage } from './pages/AdminOrdersPage';
 import { SellerReviewsPage } from './pages/SellerReviewsPage';
 import { SellerAnalyticsPage } from './pages/SellerAnalyticsPage';
 import { SellerInventoryPage } from './pages/SellerInventoryPage';
+import { SellerChatPage } from './pages/SellerChatPage';
+import { CustomerChatWidget } from './components/chat/CustomerChatWidget';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
@@ -29,6 +31,7 @@ export const App: React.FC = () => {
     <BrowserRouter>
       <CartProvider>
         <CartDrawer />
+        <CustomerChatWidget />
         <Routes>
         {/* Public Storefront Routes */}
         <Route path="/" element={<HomePage />} />
@@ -106,6 +109,14 @@ export const App: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['admin', 'seller']}>
               <SellerInventoryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/seller/messages"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'seller']}>
+              <SellerChatPage />
             </ProtectedRoute>
           }
         />

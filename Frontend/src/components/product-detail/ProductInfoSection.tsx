@@ -210,6 +210,58 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product,
         )}
       </div>
 
+      {/* Seller Information Card */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 16px',
+          borderRadius: 'var(--radius-lg)',
+          backgroundColor: '#fff',
+          border: '1px solid var(--color-border-subtle)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '50%',
+              backgroundColor: '#ffe2e7',
+              color: '#ba0036',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 800,
+              fontSize: '16px',
+              flexShrink: 0,
+              boxShadow: '0 2px 6px rgba(186, 0, 54, 0.12)',
+            }}
+          >
+            {(product.sellerName || 'S').charAt(0).toUpperCase()}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-on-surface)' }}>
+                {product.sellerName || 'ShopVibe Official Store'}
+              </span>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '16px', color: '#2563eb' }}
+                title="Người bán đã xác thực"
+              >
+                verified
+              </span>
+            </div>
+            <span style={{ fontSize: '12px', color: 'var(--color-on-surface-variant)' }}>
+              Người bán uy tín • Đối tác ShopVibe
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Exclusive Vouchers & Promos */}
       {product.vouchers && product.vouchers.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

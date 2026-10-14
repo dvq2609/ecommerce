@@ -32,6 +32,8 @@ namespace Backend.Models
         public DbSet<ShippingRule> ShippingRules { get; set; } = null!;
         public DbSet<UserAddress> UserAddresses { get; set; } = null!;
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
+        public DbSet<ChatConversation> ChatConversations { get; set; } = null!;
+        public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -240,6 +242,37 @@ namespace Backend.Models
             modelBuilder.Entity<PaymentTransaction>()
                 .HasIndex(pt => pt.OrderCode)
                 .HasDatabaseName("IX_PaymentTransactions_OrderCode");
+
+            // Chat Configuration
+            modelBuilder.Entity<ChatConversation>()
+                .HasOne(c => c.Buyer)
+                .WithMany()
+                .HasForeignKey(c => c.BuyerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ChatConversation>()
+                .HasOne(c => c.Seller)
+                .WithMany()
+                .HasForeignKey(c => c.SellerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(m => m.Conversation)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(m => m.AttachedProduct)
+                .WithMany()
+                .HasForeignKey(m => m.AttachedProductId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

@@ -4,12 +4,14 @@ interface ProductDetailBottomBarProps {
   onChat?: () => void;
   onAddToCart?: () => void;
   onBuyNow?: () => void;
+  isSellerOwner?: boolean;
 }
 
 export const ProductDetailBottomBar: React.FC<ProductDetailBottomBarProps> = ({
   onChat,
   onAddToCart,
   onBuyNow,
+  isSellerOwner = false,
 }) => {
   return (
     <footer
@@ -41,29 +43,31 @@ export const ProductDetailBottomBar: React.FC<ProductDetailBottomBarProps> = ({
       >
         {/* Left icon buttons: Chat & Quick Add */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <button
-            type="button"
-            aria-label="Chat ngay với người bán"
-            onClick={onChat}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '52px',
-              height: '48px',
-              borderRadius: 'var(--radius-sm)',
-              color: 'var(--color-on-surface-variant)',
-              transition: 'color 0.15s ease',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-primary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
-              chat
-            </span>
-            <span style={{ fontSize: '10.5px', fontWeight: 600, marginTop: '2px' }}>Chat</span>
-          </button>
+          {!isSellerOwner && (
+            <button
+              type="button"
+              aria-label="Chat ngay với người bán"
+              onClick={onChat}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '52px',
+                height: '48px',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--color-on-surface-variant)',
+                transition: 'color 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-primary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-on-surface-variant)')}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+                chat
+              </span>
+              <span style={{ fontSize: '10.5px', fontWeight: 600, marginTop: '2px' }}>Chat</span>
+            </button>
+          )}
 
           <button
             type="button"

@@ -648,28 +648,30 @@ export const SellerInventoryPage: React.FC = () => {
 
 // ─── Inline Style Constants ──────────────────────────────────────────────────
 const cardKpiStyle: React.CSSProperties = {
-  backgroundColor: 'var(--color-surface-card)',
-  borderRadius: 'var(--radius-xl)',
-  padding: '20px 22px',
-  border: '1px solid var(--color-border-subtle)',
-  boxShadow: 'var(--shadow-sm)',
+  backgroundColor: '#ffffff',
+  borderRadius: '16px',
+  padding: '22px 24px',
+  border: '1px solid var(--nike-hairline, #e5e5e5)',
+  boxShadow: 'none',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'space-between',
 };
 
 const kpiLabelStyle: React.CSSProperties = {
-  fontSize: '12px',
-  color: 'var(--color-on-surface)',
+  fontSize: '11.5px',
+  color: 'var(--nike-gray, #707072)',
   fontWeight: 700,
-  letterSpacing: '0.5px',
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
 };
 
 const kpiIconWrapperStyle: React.CSSProperties = {
   width: '36px',
   height: '36px',
   borderRadius: '50%',
-  backgroundColor: 'var(--color-surface-container-low)',
+  backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+  border: '1px solid var(--nike-hairline, #e5e5e5)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -678,28 +680,32 @@ const kpiIconWrapperStyle: React.CSSProperties = {
 const kpiValueStyle: React.CSSProperties = {
   fontSize: '28px',
   fontWeight: 800,
-  color: 'var(--color-on-surface)',
-  marginTop: '8px',
-  letterSpacing: '-0.5px',
+  color: 'var(--nike-black, #111111)',
+  marginTop: '10px',
+  letterSpacing: '-0.02em',
 };
 
 const kpiSubtextStyle: React.CSSProperties = {
   fontSize: '12px',
-  color: 'var(--color-on-surface-variant)',
+  color: 'var(--nike-gray, #707072)',
   marginTop: '4px',
 };
 
 const thStyle: React.CSSProperties = {
-  padding: '12px 16px',
+  padding: '14px 16px',
   fontSize: '11.5px',
   fontWeight: 700,
-  letterSpacing: '0.5px',
-  color: '#64748b',
+  letterSpacing: '0.06em',
+  color: 'var(--nike-gray, #707072)',
+  textTransform: 'uppercase',
+  backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+  borderBottom: '1px solid var(--nike-hairline, #e5e5e5)',
 };
 
 const tdStyle: React.CSSProperties = {
   padding: '14px 16px',
   verticalAlign: 'middle',
+  borderBottom: '1px solid var(--nike-hairline, #e5e5e5)',
 };
 
 const badgeStyle: React.CSSProperties = {

@@ -48,17 +48,16 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
         width: '100%',
       }}
     >
-      {/* Main Image Showcase - Proportionally matches container & page */}
+      {/* Main Image Showcase - 3:4 ratio editorial style */}
       <div
         style={{
           position: 'relative',
           width: '100%',
-          aspectRatio: '4/5',
-          borderRadius: 'var(--radius-xl)',
+          aspectRatio: '3/4',
+          borderRadius: '16px',
           overflow: 'hidden',
-          backgroundColor: 'var(--color-surface-container-low)',
-          boxShadow: 'var(--shadow-card)',
-          border: '1px solid var(--color-border-subtle)',
+          backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+          border: '1px solid var(--nike-hairline, #e5e5e5)',
         }}
       >
         <img
@@ -82,21 +81,22 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
             position: 'absolute',
             top: '14px',
             right: '14px',
-            width: '38px',
-            height: '38px',
+            width: '40px',
+            height: '40px',
             borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.88)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: isLiked ? 'var(--color-primary)' : 'var(--color-on-surface)',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            color: isLiked ? 'var(--nike-sale, #d30005)' : 'var(--nike-black, #111111)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            border: '1px solid rgba(0,0,0,0.06)',
             transition: 'transform 0.15s ease',
             zIndex: 10,
           }}
-          onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.88)')}
+          onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
           onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
         >
           <span
@@ -117,8 +117,8 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
             bottom: '14px',
             right: '14px',
             padding: '4px 10px',
-            backgroundColor: 'rgba(27, 28, 28, 0.72)',
-            backdropFilter: 'blur(6px)',
+            backgroundColor: 'rgba(17, 17, 17, 0.75)',
+            backdropFilter: 'blur(8px)',
             borderRadius: '9999px',
             color: '#ffffff',
             fontSize: '11px',
@@ -126,12 +126,12 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
             letterSpacing: '0.04em',
             display: 'flex',
             alignItems: 'center',
-            gap: '2px',
+            gap: '3px',
             zIndex: 10,
           }}
         >
           <span>{activeIdx + 1}</span>
-          <span style={{ opacity: 0.6 }}>/</span>
+          <span style={{ opacity: 0.5 }}>/</span>
           <span style={{ opacity: 0.85 }}>{images.length}</span>
         </div>
 
@@ -223,16 +223,17 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
                 onClick={() => handleSelect(idx)}
                 style={{
                   width: '64px',
-                  height: '64px',
-                  borderRadius: 'var(--radius-md)',
+                  height: '80px',
+                  borderRadius: '10px',
                   overflow: 'hidden',
                   flexShrink: 0,
-                  border: isSelected ? '2px solid var(--color-primary)' : '1px solid var(--color-border-subtle)',
-                  boxShadow: isSelected ? '0 0 0 2px rgba(186, 0, 54, 0.2)' : 'none',
-                  opacity: isSelected ? 1 : 0.7,
+                  border: isSelected ? '2px solid var(--nike-black, #111111)' : '1px solid var(--nike-hairline, #e5e5e5)',
+                  boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.12)' : 'none',
+                  opacity: isSelected ? 1 : 0.65,
                   transition: 'all 0.2s ease',
                   cursor: 'pointer',
-                  backgroundColor: 'var(--color-surface-container)',
+                  backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+                  padding: 0,
                 }}
               >
                 <img

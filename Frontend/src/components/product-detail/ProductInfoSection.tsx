@@ -15,93 +15,96 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product,
   const currentSavings = product.originalPrice > currentPrice ? product.originalPrice - currentPrice : product.savingsAmount;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
       {/* Badges strip */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         {product.isMall && (
           <span
             style={{
-              padding: '3px 10px',
-              backgroundColor: 'var(--color-primary)',
+              padding: '4px 10px',
+              backgroundColor: 'var(--nike-black, #111111)',
               color: '#ffffff',
-              borderRadius: 'var(--radius-full)',
-              fontSize: '11.5px',
+              borderRadius: '9999px',
+              fontSize: '11px',
               fontWeight: 700,
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
-              boxShadow: 'var(--shadow-sm)',
+              letterSpacing: '0.04em',
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
               verified
             </span>
-            {product.brandTag}
+            {product.brandTag || 'SHOPVIBE OFFICIAL'}
           </span>
         )}
 
         {product.isNewArrival && (
           <span
             style={{
-              padding: '3px 8px',
-              backgroundColor: 'var(--color-surface-container-high)',
-              color: 'var(--color-on-surface)',
-              borderRadius: 'var(--radius-full)',
+              padding: '4px 10px',
+              backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+              color: 'var(--nike-black, #111111)',
+              borderRadius: '9999px',
               fontSize: '11px',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
+              border: '1px solid var(--nike-hairline, #e5e5e5)',
             }}
           >
-            New Arrival
+            Mới Ra Mắt
           </span>
         )}
 
         <span
           style={{
             marginLeft: 'auto',
-            padding: '3px 8px',
-            backgroundColor: '#d0f8f1',
-            color: '#006a62',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '11.5px',
-            fontWeight: 600,
+            padding: '4px 10px',
+            backgroundColor: '#f0fdf4',
+            color: '#15803d',
+            borderRadius: '9999px',
+            fontSize: '11px',
+            fontWeight: 700,
             display: 'inline-flex',
             alignItems: 'center',
             gap: '4px',
+            border: '1px solid #dcfce7',
           }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
             local_shipping
           </span>
-          {product.shippingTag}
+          {product.shippingTag || 'Freeship'}
         </span>
       </div>
 
-      {/* Collection tag & Main Title */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      {/* Collection kicker & Main Title */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <span
           style={{
-            fontSize: '12px',
+            fontSize: '11.5px',
             fontWeight: 800,
             textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            color: 'var(--color-primary)',
+            letterSpacing: '0.08em',
+            color: 'var(--nike-sale, #d30005)',
           }}
         >
-          {product.collectionTag}
+          {product.collectionTag || 'BST THỜI TRANG CAO CẤP'}
         </span>
-        <h2
+        <h1
           style={{
-            fontSize: '22px',
-            fontWeight: 700,
-            color: 'var(--color-on-surface)',
-            lineHeight: 1.35,
-            letterSpacing: '-0.015em',
+            fontSize: '26px',
+            fontWeight: 800,
+            color: 'var(--nike-black, #111111)',
+            lineHeight: 1.28,
+            letterSpacing: '-0.02em',
+            margin: 0,
           }}
         >
           {product.title}
-        </h2>
+        </h1>
       </div>
 
       {/* Rating & Social Proof Stats */}
@@ -112,14 +115,14 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product,
           gap: '10px',
           flexWrap: 'wrap',
           fontSize: '13px',
-          color: 'var(--color-on-surface-variant)',
+          color: 'var(--nike-gray, #707072)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--color-on-surface)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--nike-black, #111111)' }}>
           <span
             className="material-symbols-outlined"
             style={{
-              fontSize: '18px',
+              fontSize: '17px',
               color: '#f59e0b',
               fontVariationSettings: "'FILL' 1",
             }}
@@ -127,36 +130,36 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product,
             star
           </span>
           <span style={{ fontWeight: 800 }}>{product.rating}</span>
-          <span style={{ color: 'var(--color-on-surface-variant)', fontSize: '12px' }}>
+          <span style={{ color: 'var(--nike-gray, #707072)', fontSize: '12px' }}>
             ({product.ratingCount >= 1000 ? `${(product.ratingCount / 1000).toFixed(1)}k` : product.ratingCount})
           </span>
         </div>
 
-        <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: 'var(--color-outline)' }} />
+        <span style={{ width: '3px', height: '3px', borderRadius: '50%', backgroundColor: 'var(--nike-hairline, #e5e5e5)' }} />
         <span>Đã bán {product.soldCountText}</span>
 
-        <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: 'var(--color-outline)' }} />
-        <span style={{ color: '#006a62', fontWeight: 600 }}>{product.satisfactionRate}</span>
+        <span style={{ width: '3px', height: '3px', borderRadius: '50%', backgroundColor: 'var(--nike-hairline, #e5e5e5)' }} />
+        <span style={{ color: '#15803d', fontWeight: 600 }}>{product.satisfactionRate} hài lòng</span>
       </div>
 
-      {/* Price Container */}
+      {/* Price Container - Clean Apple Card style */}
       <div
         style={{
-          padding: '16px',
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: 'var(--color-surface-container-low)',
-          border: '1px solid var(--color-border-subtle)',
+          padding: '16px 20px',
+          borderRadius: '16px',
+          backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+          border: '1px solid var(--nike-hairline, #e5e5e5)',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
           <span
             style={{
               fontSize: '28px',
               fontWeight: 800,
-              color: 'var(--color-primary)',
+              color: 'var(--nike-black, #111111)',
               letterSpacing: '-0.02em',
             }}
           >
@@ -166,10 +169,10 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product,
           {product.originalPrice > currentPrice && (
             <span
               style={{
-                fontSize: '15px',
-                color: 'var(--color-on-surface-variant)',
+                fontSize: '16px',
+                color: 'var(--nike-gray, #707072)',
                 textDecoration: 'line-through',
-                opacity: 0.75,
+                fontWeight: 500,
               }}
             >
               {formatPrice(product.originalPrice)}
@@ -180,11 +183,12 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product,
             <span
               style={{
                 padding: '2px 8px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-primary-fixed)',
-                color: 'var(--color-on-primary-fixed)',
+                borderRadius: '9999px',
+                backgroundColor: 'var(--nike-sale, #d30005)',
+                color: '#ffffff',
                 fontSize: '12px',
                 fontWeight: 800,
+                letterSpacing: '0.02em',
               }}
             >
               -{product.discountPercent}%
@@ -198,11 +202,12 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product,
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              color: 'var(--color-on-surface-variant)',
-              fontSize: '12px',
+              color: '#15803d',
+              fontSize: '12.5px',
+              fontWeight: 600,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#006a62' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
               savings
             </span>
             <span>Tiết kiệm {formatPrice(currentSavings)} so với giá niêm yết</span>
@@ -210,17 +215,17 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product,
         )}
       </div>
 
-      {/* Seller Information Card */}
+      {/* Seller Information Card - Apple Hairline Card */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '12px 16px',
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: '#fff',
-          border: '1px solid var(--color-border-subtle)',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          padding: '14px 18px',
+          borderRadius: '14px',
+          backgroundColor: '#ffffff',
+          border: '1px solid var(--nike-hairline, #e5e5e5)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -229,22 +234,21 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product,
               width: '42px',
               height: '42px',
               borderRadius: '50%',
-              backgroundColor: '#ffe2e7',
-              color: '#ba0036',
+              backgroundColor: 'var(--nike-black, #111111)',
+              color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 800,
               fontSize: '16px',
               flexShrink: 0,
-              boxShadow: '0 2px 6px rgba(186, 0, 54, 0.12)',
             }}
           >
             {(product.sellerName || 'S').charAt(0).toUpperCase()}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-on-surface)' }}>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--nike-black, #111111)' }}>
                 {product.sellerName || 'ShopVibe Official Store'}
               </span>
               <span
@@ -255,8 +259,8 @@ export const ProductInfoSection: React.FC<ProductInfoSectionProps> = ({ product,
                 verified
               </span>
             </div>
-            <span style={{ fontSize: '12px', color: 'var(--color-on-surface-variant)' }}>
-              Người bán uy tín • Đối tác ShopVibe
+            <span style={{ fontSize: '12px', color: 'var(--nike-gray, #707072)' }}>
+              Người bán uy tín • Đối tác chính thức
             </span>
           </div>
         </div>

@@ -11,22 +11,21 @@ export const TrustBadgeStrip: React.FC<TrustBadgeStripProps> = ({
   return (
     <div
       style={{
-        maxWidth: '1200px',
+        maxWidth: '1280px',
         margin: '0 auto',
         width: '100%',
-        padding: '10px 16px',
+        padding: '8px 20px 16px 20px',
       }}
     >
       <div
+        className="card-hairline"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '8px',
-          backgroundColor: 'var(--color-surface-container-low)',
-          padding: '12px 8px',
-          borderRadius: 'var(--radius-lg)',
-          textAlign: 'center',
-          border: '1px solid var(--color-border-subtle)',
+          gap: '12px',
+          backgroundColor: '#ffffff',
+          padding: '16px 20px',
+          borderRadius: '20px',
         }}
       >
         {badges.map((badge) => (
@@ -34,43 +33,55 @@ export const TrustBadgeStrip: React.FC<TrustBadgeStripProps> = ({
             key={badge.id}
             style={{
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '4px',
+              gap: '12px',
+              padding: '6px 8px',
             }}
           >
-            <span
-              className="material-symbols-outlined"
+            <div
               style={{
-                color: 'var(--color-primary)',
-                fontSize: '24px',
-                fontVariationSettings: "'FILL' 1",
+                width: '42px',
+                height: '42px',
+                borderRadius: '50%',
+                backgroundColor: '#f5f5f7',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
               }}
             >
-              {badge.icon}
-            </span>
-            <span
-              style={{
-                fontSize: '12.5px',
-                fontWeight: 700,
-                color: 'var(--color-on-surface)',
-                marginTop: '4px',
-                lineHeight: 1.2,
-              }}
-            >
-              {badge.title}
-            </span>
-            <span
-              style={{
-                fontSize: '10.5px',
-                color: 'var(--color-on-surface-variant)',
-                marginTop: '2px',
-                display: 'block',
-              }}
-            >
-              {badge.subtitle}
-            </span>
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  color: '#111111',
+                  fontSize: '22px',
+                }}
+              >
+                {badge.icon}
+              </span>
+            </div>
+            <div style={{ textAlign: 'left' }}>
+              <div
+                style={{
+                  fontSize: '13.5px',
+                  fontWeight: 700,
+                  color: '#111111',
+                  lineHeight: 1.25,
+                }}
+              >
+                {badge.title}
+              </div>
+              <div
+                style={{
+                  fontSize: '11.5px',
+                  color: '#707072',
+                  marginTop: '2px',
+                }}
+              >
+                {badge.subtitle}
+              </div>
+            </div>
           </div>
         ))}
       </div>

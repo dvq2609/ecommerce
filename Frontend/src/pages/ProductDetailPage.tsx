@@ -333,30 +333,29 @@ export const ProductDetailPage: React.FC = () => {
       {/* Main Product Container */}
       <main
         style={{
-          maxWidth: '1200px',
+          maxWidth: '1280px',
           margin: '0 auto',
           width: '100%',
-          padding: '16px 16px 32px 16px',
+          padding: '24px 20px 48px 20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '24px',
+          gap: '40px',
         }}
       >
-        {/* Top Showcase: 2-column on desktop, single column on mobile */}
+        {/* Top Showcase: 2-column on desktop with sticky Buy Box, single column on mobile */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 460px), 1fr))',
-            gap: '32px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 480px), 1fr))',
+            gap: '48px',
             alignItems: 'start',
-            backgroundColor: 'var(--color-surface-card)',
-            padding: '24px',
-            borderRadius: 'var(--radius-2xl)',
-            border: '1px solid var(--color-border-subtle)',
-            boxShadow: 'var(--shadow-sm)',
+            backgroundColor: '#ffffff',
+            padding: '28px',
+            borderRadius: '24px',
+            border: '1px solid var(--nike-hairline, #e5e5e5)',
           }}
         >
-          {/* Left Column: Image Gallery (Proportionally matches the page!) */}
+          {/* Left Column: Image Gallery */}
           <div style={{ width: '100%' }}>
             <ProductImageGallery
               images={product.images}
@@ -368,8 +367,18 @@ export const ProductDetailPage: React.FC = () => {
             />
           </div>
 
-          {/* Right Column: Information, Pricing, Variants & Guarantees */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', width: '100%' }}>
+          {/* Right Column: Sticky Buy Box (Information, Pricing, Variants & Guarantees) */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px',
+              width: '100%',
+              position: 'sticky',
+              top: '80px',
+              alignSelf: 'start',
+            }}
+          >
             <ProductInfoSection product={product} displayPrice={currentPrice} />
 
             <ProductVariantSelector
@@ -395,35 +404,25 @@ export const ProductDetailPage: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                marginTop: '10px',
+                marginTop: '12px',
               }}
             >
               <button
                 type="button"
                 disabled={isOutOfStock}
                 onClick={handleAddToCart}
+                className="btn-pill-secondary"
                 style={{
                   flex: 1,
-                  height: '48px',
-                  borderRadius: 'var(--radius-full)',
-                  border: isOutOfStock ? '1.5px solid var(--color-outline)' : '1.5px solid var(--color-primary)',
-                  backgroundColor: 'transparent',
-                  color: isOutOfStock ? 'var(--color-outline)' : 'var(--color-primary)',
-                  fontSize: '14px',
+                  height: '52px',
+                  fontSize: '14.5px',
                   fontWeight: 700,
-                  cursor: isOutOfStock ? 'not-allowed' : 'pointer',
-                  opacity: isOutOfStock ? 0.6 : 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '6px',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isOutOfStock) e.currentTarget.style.backgroundColor = 'var(--color-primary-fixed)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
+                  gap: '8px',
+                  opacity: isOutOfStock ? 0.5 : 1,
+                  cursor: isOutOfStock ? 'not-allowed' : 'pointer',
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
@@ -436,34 +435,17 @@ export const ProductDetailPage: React.FC = () => {
                 type="button"
                 disabled={isOutOfStock}
                 onClick={handleBuyNow}
+                className="btn-pill-primary"
                 style={{
                   flex: 1,
-                  height: '48px',
-                  borderRadius: 'var(--radius-full)',
-                  border: 'none',
-                  backgroundColor: isOutOfStock ? 'var(--color-surface-container-high)' : 'var(--color-primary)',
-                  color: isOutOfStock ? 'var(--color-on-surface-variant)' : '#ffffff',
-                  fontSize: '14px',
+                  height: '52px',
+                  fontSize: '14.5px',
                   fontWeight: 700,
-                  cursor: isOutOfStock ? 'not-allowed' : 'pointer',
-                  opacity: isOutOfStock ? 0.7 : 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: isOutOfStock ? 'none' : '0 4px 14px rgba(186, 0, 54, 0.3)',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isOutOfStock) {
-                    e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isOutOfStock) {
-                    e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }
+                  opacity: isOutOfStock ? 0.5 : 1,
+                  cursor: isOutOfStock ? 'not-allowed' : 'pointer',
                 }}
               >
                 {isOutOfStock ? 'Hết hàng' : 'Mua ngay'}
@@ -477,11 +459,11 @@ export const ProductDetailPage: React.FC = () => {
                 onClick={handleChat}
                 style={{
                   width: '100%',
-                  height: '42px',
-                  borderRadius: 'var(--radius-full)',
-                  border: '1px solid var(--color-border-subtle)',
-                  backgroundColor: 'var(--color-surface-container-low)',
-                  color: 'var(--color-on-surface)',
+                  height: '44px',
+                  borderRadius: '9999px',
+                  border: '1px solid var(--nike-hairline, #e5e5e5)',
+                  backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+                  color: 'var(--nike-black, #111111)',
                   fontSize: '13.5px',
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -489,13 +471,12 @@ export const ProductDetailPage: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  marginTop: '10px',
                   transition: 'background-color 0.15s ease',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-container-high)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-surface-container-low)')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#eaeaea')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--nike-soft-cloud, #f5f5f7)')}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#ff385c' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--nike-black, #111111)' }}>
                   chat
                 </span>
                 <span>Chat ngay với người bán</span>
@@ -536,33 +517,13 @@ export const ProductDetailPage: React.FC = () => {
         isSellerOwner={isSellerOwner}
       />
 
-      {/* Toast Confirmation when adding to cart */}
+      {/* Toast Confirmation when adding to cart (Apple Dynamic Island style) */}
       {cartSuccessMessage && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: '84px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 100,
-            backgroundColor: 'var(--color-on-surface)',
-            color: '#ffffff',
-            padding: '12px 20px',
-            borderRadius: 'var(--radius-lg)',
-            fontSize: '13px',
-            fontWeight: 600,
-            boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            maxWidth: '92vw',
-            animation: 'fadeIn 0.2s ease',
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#4ade80' }}>
+        <div className="toast-dynamic-island">
+          <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#4ade80' }}>
             check_circle
           </span>
-          <span style={{ lineHeight: 1.4 }}>{cartSuccessMessage}</span>
+          <span style={{ lineHeight: 1.4, fontSize: '13px' }}>{cartSuccessMessage}</span>
         </div>
       )}
     </div>

@@ -37,6 +37,13 @@ export interface FlashSaleItem {
   isLiked?: boolean;
 }
 
+export interface ProductColorOption {
+  colorId?: number;
+  colorName: string;
+  hexCode: string;
+  imageUrl?: string;
+}
+
 export interface ProductCatalogItem {
   id: string;
   title: string;
@@ -49,5 +56,8 @@ export interface ProductCatalogItem {
   reviewCount: number;
   deliveryTag: string;
   imageUrl: string;
+  secondaryImageUrl?: string;
+  colors?: ProductColorOption[];
   isLiked?: boolean;
 }
+

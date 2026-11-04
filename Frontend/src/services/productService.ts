@@ -69,6 +69,28 @@ export const productService = {
               ? item.images.find((img: any) => img.isPrimary)?.imageUrl || item.images[0].imageUrl
               : 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=80';
 
+          const secondaryImg =
+            item.images && item.images.length > 1
+              ? item.images[1].imageUrl
+              : primaryImg;
+
+          const colorList: any[] = [];
+          if (Array.isArray(item.variants)) {
+            const seen = new Set();
+            for (const v of item.variants) {
+              if (v.colorId && !seen.has(v.colorId)) {
+                seen.add(v.colorId);
+                const colorImg = item.images?.find((img: any) => img.colorId === v.colorId)?.imageUrl;
+                colorList.push({
+                  colorId: v.colorId,
+                  colorName: v.colorName || 'Màu',
+                  hexCode: v.hexCode || '#111111',
+                  imageUrl: colorImg || primaryImg,
+                });
+              }
+            }
+          }
+
           const price = Number(item.price) || 0;
           const originalPrice = Math.round(price * 1.25);
           const discountPercent = 20;
@@ -85,6 +107,8 @@ export const productService = {
             reviewCount: Number(item.ratingCount) || 0,
             deliveryTag: idx % 2 === 0 ? 'Giao siêu tốc 2h' : 'Freeship Xtra',
             imageUrl: primaryImg,
+            secondaryImageUrl: secondaryImg,
+            colors: colorList.length > 0 ? colorList : undefined,
           };
         });
 

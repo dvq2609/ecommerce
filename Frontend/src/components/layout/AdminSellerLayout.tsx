@@ -142,9 +142,9 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
       style={{
         display: 'flex',
         minHeight: '100vh',
-        backgroundColor: 'var(--color-surface-bg)',
+        backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        color: 'var(--color-on-surface)',
+        color: 'var(--nike-black, #111111)',
       }}
     >
       {/* SIDEBAR DESKTOP (Có thể thu nhỏ / mở rộng mượt mà) */}
@@ -152,14 +152,13 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
         style={{
           width: sidebarCollapsed ? '78px' : '264px',
           backgroundColor: '#ffffff',
-          borderRight: '1px solid var(--color-border-subtle)',
+          borderRight: '1px solid var(--nike-hairline, #e5e5e5)',
           display: 'flex',
           flexDirection: 'column',
           position: 'sticky',
           top: 0,
           height: '100vh',
           zIndex: 40,
-          boxShadow: 'var(--shadow-soft)',
           transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           overflow: 'hidden',
           flexShrink: 0,
@@ -170,7 +169,7 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
         <div
           style={{
             padding: sidebarCollapsed ? '20px 14px' : '20px 20px',
-            borderBottom: '1px solid var(--color-border-subtle)',
+            borderBottom: '1px solid var(--nike-hairline, #e5e5e5)',
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
@@ -192,8 +191,8 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
             <span
               className="material-symbols-outlined"
               style={{
-                color: 'var(--color-primary)',
-                fontSize: '30px',
+                color: 'var(--nike-black, #111111)',
+                fontSize: '28px',
                 fontVariationSettings: "'FILL' 1",
                 flexShrink: 0,
               }}
@@ -203,14 +202,14 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
             {!sidebarCollapsed && (
               <span
                 style={{
-                  fontSize: '22px',
-                  fontWeight: 800,
+                  fontSize: '20px',
+                  fontWeight: 900,
                   letterSpacing: '-0.5px',
-                  color: 'var(--color-on-surface)',
+                  color: 'var(--nike-black, #111111)',
                   whiteSpace: 'nowrap',
                 }}
               >
-                Shop<span style={{ color: 'var(--color-primary)' }}>Vibe</span>
+                SHOP<span style={{ color: 'var(--nike-sale, #d30005)' }}>VIBE</span>
               </span>
             )}
           </Link>
@@ -223,19 +222,21 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
                 alignItems: 'center',
                 gap: '6px',
                 padding: '4px 10px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-primary-fixed)',
-                color: 'var(--color-on-primary-fixed)',
+                borderRadius: '9999px',
+                backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+                color: 'var(--nike-black, #111111)',
+                border: '1px solid var(--nike-hairline, #e5e5e5)',
                 fontSize: '11px',
                 fontWeight: 700,
-                letterSpacing: '0.02em',
+                letterSpacing: '0.04em',
                 width: 'fit-content',
                 whiteSpace: 'nowrap',
+                textTransform: 'uppercase',
               }}
             >
               <span
                 className="material-symbols-outlined"
-                style={{ fontSize: '15px', color: 'var(--color-primary)' }}
+                style={{ fontSize: '14px', color: 'var(--nike-black, #111111)' }}
               >
                 {isAdmin ? 'shield_person' : 'storefront'}
               </span>
@@ -244,10 +245,11 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
           ) : (
             <div
               style={{
-                width: '28px',
-                height: '28px',
+                width: '32px',
+                height: '32px',
                 borderRadius: '50%',
-                backgroundColor: 'var(--color-primary-fixed)',
+                backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+                border: '1px solid var(--nike-hairline, #e5e5e5)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -256,7 +258,7 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
             >
               <span
                 className="material-symbols-outlined"
-                style={{ fontSize: '16px', color: 'var(--color-primary)' }}
+                style={{ fontSize: '16px', color: 'var(--nike-black, #111111)' }}
               >
                 {isAdmin ? 'shield_person' : 'storefront'}
               </span>
@@ -297,26 +299,35 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
                         alignItems: 'center',
                         justifyContent: sidebarCollapsed ? 'center' : 'space-between',
                         padding: sidebarCollapsed ? '10px 0' : '10px 14px',
-                        borderRadius: 'var(--radius-lg)',
+                        borderRadius: '10px',
                         textDecoration: 'none',
                         fontSize: '13.5px',
                         fontWeight: isActive ? 700 : 500,
-                        color: isActive ? 'var(--color-primary)' : 'var(--color-on-surface)',
+                        color: isActive ? '#ffffff' : 'var(--nike-gray, #707072)',
                         backgroundColor: isActive
-                          ? 'var(--color-surface-container-low)'
+                          ? 'var(--nike-black, #111111)'
                           : 'transparent',
-                        border: isActive
-                          ? '1px solid var(--color-primary-fixed-dim)'
-                          : '1px solid transparent',
                         transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.backgroundColor = 'var(--nike-soft-cloud, #f5f5f7)';
+                          e.currentTarget.style.color = 'var(--nike-black, #111111)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = 'var(--nike-gray, #707072)';
+                        }
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span
                           className="material-symbols-outlined"
                           style={{
-                            fontSize: '22px',
-                            color: isActive ? 'var(--color-primary)' : 'var(--color-on-surface-variant)',
+                            fontSize: '20px',
+                            color: isActive ? '#ffffff' : 'var(--nike-gray, #707072)',
                             fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
                             flexShrink: 0,
                           }}
@@ -331,9 +342,9 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
                             fontSize: '10.5px',
                             fontWeight: 700,
                             padding: '2px 8px',
-                            borderRadius: 'var(--radius-full)',
-                            backgroundColor: isActive ? 'var(--color-primary-fixed)' : 'var(--color-surface-container)',
-                            color: isActive ? 'var(--color-on-primary-fixed)' : 'var(--color-on-surface-variant)',
+                            borderRadius: '9999px',
+                            backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'var(--nike-soft-cloud, #f5f5f7)',
+                            color: isActive ? '#ffffff' : 'var(--nike-black, #111111)',
                             whiteSpace: 'nowrap',
                           }}
                         >
@@ -352,7 +363,7 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
         <div
           style={{
             padding: sidebarCollapsed ? '12px 8px' : '16px',
-            borderTop: '1px solid var(--color-border-subtle)',
+            borderTop: '1px solid var(--nike-hairline, #e5e5e5)',
             backgroundColor: '#ffffff',
           }}
         >
@@ -364,9 +375,10 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
                   alignItems: 'center',
                   gap: '10px',
                   marginBottom: '12px',
-                  padding: '6px 8px',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--color-surface-container-lowest)',
+                  padding: '8px 10px',
+                  borderRadius: '12px',
+                  backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+                  border: '1px solid var(--nike-hairline, #e5e5e5)',
                 }}
               >
                 <div
@@ -374,14 +386,13 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
                     width: '36px',
                     height: '36px',
                     borderRadius: '50%',
-                    backgroundColor: 'var(--color-primary)',
+                    backgroundColor: 'var(--nike-black, #111111)',
                     color: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 700,
                     fontSize: '14px',
-                    boxShadow: '0 2px 6px rgba(186, 0, 54, 0.25)',
                     flexShrink: 0,
                   }}
                 >
@@ -392,7 +403,7 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
                     style={{
                       fontSize: '13px',
                       fontWeight: 700,
-                      color: 'var(--color-on-surface)',
+                      color: 'var(--nike-black, #111111)',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -403,7 +414,7 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
                   <div
                     style={{
                       fontSize: '11px',
-                      color: 'var(--color-on-surface-variant)',
+                      color: 'var(--nike-gray, #707072)',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -424,19 +435,21 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
                     justifyContent: 'center',
                     gap: '6px',
                     padding: '9px 12px',
-                    borderRadius: 'var(--radius-full)',
-                    backgroundColor: 'var(--color-surface-container-low)',
-                    border: '1px solid var(--color-border-subtle)',
+                    borderRadius: '9999px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid var(--nike-hairline, #e5e5e5)',
                     fontSize: '12.5px',
                     fontWeight: 600,
-                    color: 'var(--color-on-surface)',
+                    color: 'var(--nike-black, #111111)',
                     textDecoration: 'none',
                     transition: 'all 0.15s ease',
                   }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--nike-soft-cloud, #f5f5f7)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
                 >
                   <span
                     className="material-symbols-outlined"
-                    style={{ fontSize: '18px', color: 'var(--color-primary)' }}
+                    style={{ fontSize: '18px', color: 'var(--nike-black, #111111)' }}
                   >
                     storefront
                   </span>
@@ -522,11 +535,11 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
         <header
           style={{
             height: '64px',
-            backgroundColor: 'rgba(252, 249, 248, 0.88)',
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            borderBottom: '1px solid var(--color-border-subtle)',
-            boxShadow: 'var(--shadow-soft)',
+            borderBottom: '1px solid var(--nike-hairline, #e5e5e5)',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -536,37 +549,39 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
             zIndex: 30,
           }}
         >
-          {/* Nút 3 gạch điều khiển Sidebar & Tiêu đề trang (KHÔNG lặp lại logo ShopVibe ở đây nữa) */}
+          {/* Nút 3 gạch điều khiển Sidebar & Tiêu đề trang */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <button
               type="button"
               onClick={toggleSidebar}
               style={{
-                width: '40px',
-                height: '40px',
+                width: '38px',
+                height: '38px',
                 borderRadius: '50%',
-                backgroundColor: 'var(--color-surface-container-low)',
-                border: '1px solid var(--color-border-subtle)',
+                backgroundColor: '#ffffff',
+                border: '1px solid var(--nike-hairline, #e5e5e5)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--color-on-surface)',
+                color: 'var(--nike-black, #111111)',
                 transition: 'all 0.15s ease',
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--nike-soft-cloud, #f5f5f7)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
               title={sidebarCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
                 menu
               </span>
             </button>
 
             <div>
-              <h1 style={{ fontSize: '17.5px', fontWeight: 800, margin: 0, color: 'var(--color-on-surface)' }}>
+              <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--nike-black, #111111)', letterSpacing: '-0.01em' }}>
                 {title || (isAdmin ? 'Quản Trị Quy Chuẩn Hệ Thống' : 'Kênh Người Bán ShopVibe')}
               </h1>
               {subtitle && (
-                <p style={{ fontSize: '12px', color: 'var(--color-on-surface-variant)', margin: '2px 0 0' }}>
+                <p style={{ fontSize: '12px', color: 'var(--nike-gray, #707072)', margin: '2px 0 0' }}>
                   {subtitle}
                 </p>
               )}
@@ -578,21 +593,21 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
             {/* Chuông thông báo realtime đồng bộ icon như Homepage */}
             <NotificationBell
               buttonStyle={{
-                width: '42px',
-                height: '42px',
+                width: '40px',
+                height: '40px',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 position: 'relative',
-                color: 'var(--color-on-surface)',
-                backgroundColor: 'var(--color-surface-container-low)',
-                border: '1px solid var(--color-border-subtle)',
-                boxShadow: 'var(--shadow-sm)',
+                color: 'var(--nike-black, #111111)',
+                backgroundColor: '#ffffff',
+                border: '1px solid var(--nike-hairline, #e5e5e5)',
+                boxShadow: 'none',
                 transition: 'all 0.2s ease',
               }}
               icon={
-                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
                   notifications
                 </span>
               }
@@ -696,7 +711,7 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
             <div
               style={{
                 padding: '20px',
-                borderBottom: '1px solid var(--color-border-subtle)',
+                borderBottom: '1px solid var(--nike-hairline, #e5e5e5)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -706,15 +721,15 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
                 <span
                   className="material-symbols-outlined"
                   style={{
-                    color: 'var(--color-primary)',
-                    fontSize: '28px',
+                    color: 'var(--nike-black, #111111)',
+                    fontSize: '26px',
                     fontVariationSettings: "'FILL' 1",
                   }}
                 >
                   local_mall
                 </span>
-                <span style={{ fontSize: '20px', fontWeight: 800 }}>
-                  Shop<span style={{ color: 'var(--color-primary)' }}>Vibe</span>
+                <span style={{ fontSize: '18px', fontWeight: 900, color: 'var(--nike-black, #111111)' }}>
+                  SHOP<span style={{ color: 'var(--nike-sale, #d30005)' }}>VIBE</span>
                 </span>
               </div>
               <button
@@ -725,7 +740,7 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
                   border: 'none',
                   fontSize: '22px',
                   cursor: 'pointer',
-                  color: 'var(--color-on-surface-variant)',
+                  color: 'var(--nike-gray, #707072)',
                 }}
               >
                 ✕
@@ -740,51 +755,61 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
                       fontSize: '11px',
                       fontWeight: 700,
                       textTransform: 'uppercase',
-                      color: 'var(--color-on-surface-variant)',
+                      color: 'var(--nike-gray, #707072)',
                       padding: '0 8px 6px',
                     }}
                   >
                     {group.group}
                   </div>
-                  {group.items.map((item, iIdx) => (
-                    <Link
-                      key={iIdx}
-                      to={item.path}
-                      onClick={() => setMobileMenuOpen(false)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-md)',
-                        textDecoration: 'none',
-                        fontSize: '13.5px',
-                        fontWeight: location.pathname === item.path ? 700 : 500,
-                        color: location.pathname === item.path ? 'var(--color-primary)' : 'var(--color-on-surface)',
-                        backgroundColor: location.pathname === item.path ? 'var(--color-surface-container-low)' : 'transparent',
-                      }}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                        {item.icon}
-                      </span>
-                      <span>{item.label}</span>
-                    </Link>
-                  ))}
+                  {group.items.map((item, iIdx) => {
+                    const isActive = location.pathname === item.path;
+                    return (
+                      <Link
+                        key={iIdx}
+                        to={item.path}
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 12px',
+                          borderRadius: '10px',
+                          textDecoration: 'none',
+                          fontSize: '13.5px',
+                          fontWeight: isActive ? 700 : 500,
+                          color: isActive ? '#ffffff' : 'var(--nike-black, #111111)',
+                          backgroundColor: isActive ? 'var(--nike-black, #111111)' : 'transparent',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <span
+                          className="material-symbols-outlined"
+                          style={{
+                            fontSize: '20px',
+                            color: isActive ? '#ffffff' : 'var(--nike-gray, #707072)',
+                          }}
+                        >
+                          {item.icon}
+                        </span>
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  })}
                 </div>
               ))}
             </div>
 
-            <div style={{ padding: '16px', borderTop: '1px solid var(--color-border-subtle)' }}>
+            <div style={{ padding: '16px', borderTop: '1px solid var(--nike-hairline, #e5e5e5)' }}>
               <button
                 type="button"
                 onClick={handleLogout}
                 style={{
                   width: '100%',
                   padding: '10px',
-                  borderRadius: 'var(--radius-full)',
-                  backgroundColor: 'var(--color-surface-container)',
-                  border: 'none',
-                  color: 'var(--color-error)',
+                  borderRadius: '9999px',
+                  backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+                  border: '1px solid var(--nike-hairline, #e5e5e5)',
+                  color: 'var(--nike-sale, #d30005)',
                   fontWeight: 600,
                   fontSize: '13px',
                   display: 'flex',

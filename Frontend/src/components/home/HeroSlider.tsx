@@ -16,200 +16,306 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
     if (!slides.length) return;
     const timer = setInterval(() => {
       setCurrentIdx((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    }, 6000);
     return () => clearInterval(timer);
   }, [slides.length]);
 
   const slide = slides[currentIdx] || slides[0];
   if (!slide) return null;
 
+  const nextSlide = () => setCurrentIdx((prev) => (prev + 1) % slides.length);
+  const prevSlide = () => setCurrentIdx((prev) => (prev - 1 + slides.length) % slides.length);
+
   return (
     <div
       style={{
-        maxWidth: '1200px',
+        maxWidth: '1280px',
         margin: '0 auto',
         width: '100%',
-        padding: '6px 16px',
+        padding: '12px 20px',
       }}
     >
       <div
         style={{
           position: 'relative',
           width: '100%',
-          borderRadius: 'var(--radius-xl)',
+          borderRadius: '24px',
           overflow: 'hidden',
-          boxShadow: 'var(--shadow-card)',
-          backgroundColor: 'var(--color-surface-card)',
+          backgroundColor: '#111111',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.12)',
         }}
       >
-        {/* Banner Content Container */}
+        {/* Banner Image & Gradient Overlay */}
         <div
           style={{
             position: 'relative',
             width: '100%',
-            minHeight: '210px',
+            minHeight: '440px',
             backgroundImage: `url(${slide.imageUrl})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: '20px',
-            transition: 'background-image 0.5s ease-in-out',
+            justifyContent: 'flex-end',
+            padding: '40px 36px',
+            transition: 'background-image 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
+          className="hero-banner-inner"
         >
-          {/* Subtle Dark Gradient Overlay for optimal legibility */}
+          {/* Editorial Gradient Vignette */}
           <div
             style={{
               position: 'absolute',
               inset: 0,
               background:
-                'linear-gradient(90deg, rgba(27, 28, 28, 0.78) 0%, rgba(27, 28, 28, 0.45) 45%, rgba(27, 28, 28, 0.1) 100%)',
+                'linear-gradient(180deg, rgba(17, 17, 17, 0.15) 0%, rgba(17, 17, 17, 0.45) 50%, rgba(17, 17, 17, 0.9) 100%)',
               zIndex: 1,
             }}
           />
 
-          {/* Top Row: Tag & Slide Counter */}
+          {/* Top Badge & Slide Counter */}
           <div
             style={{
-              position: 'relative',
+              position: 'absolute',
+              top: '24px',
+              left: '28px',
+              right: '28px',
               zIndex: 2,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
           >
-            <span
+            <div
               style={{
-                padding: '4px 12px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-primary)',
-                color: '#ffffff',
-                fontSize: '11px',
-                fontWeight: 700,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                boxShadow: '0 2px 6px rgba(186, 0, 54, 0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 14px',
+                borderRadius: '9999px',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
               }}
             >
-              {slide.badge}
-            </span>
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: '#d30005',
+                  display: 'inline-block',
+                }}
+              />
+              <span
+                style={{
+                  color: '#ffffff',
+                  fontSize: '11.5px',
+                  fontWeight: 800,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {slide.badge || 'BỘ SƯU TẬP 2026'}
+              </span>
+            </div>
 
-            <span
+            <div
               style={{
-                padding: '3px 10px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'rgba(27, 28, 28, 0.45)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                color: '#ffffff',
-                fontSize: '11px',
-                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
               }}
             >
-              {currentIdx + 1}/{slides.length}
-            </span>
-          </div>
-
-          {/* Middle/Bottom: Headline, Subtitle & CTA */}
-          <div
-            style={{
-              position: 'relative',
-              zIndex: 2,
-              maxWidth: '380px',
-              marginTop: '16px',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '22px',
-                fontWeight: 800,
-                color: '#ffffff',
-                lineHeight: 1.25,
-                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                letterSpacing: '-0.3px',
-              }}
-            >
-              {slide.title}
-            </h2>
-            <p
-              style={{
-                fontSize: '13px',
-                color: 'rgba(255, 255, 255, 0.92)',
-                marginTop: '4px',
-                textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-              }}
-            >
-              {slide.subtitle}
-            </p>
-
-            <div style={{ marginTop: '14px' }}>
+              {/* Prev / Next Minimalist Arrows */}
               <button
                 type="button"
-                onClick={() => onCtaClick?.(slide)}
+                onClick={prevSlide}
+                aria-label="Previous slide"
                 style={{
-                  height: '38px',
-                  padding: '0 18px',
-                  borderRadius: 'var(--radius-full)',
-                  backgroundColor: 'var(--color-primary)',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                  backdropFilter: 'blur(12px)',
                   color: '#ffffff',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  boxShadow: '0 4px 12px rgba(186, 0, 54, 0.35)',
-                  display: 'inline-flex',
+                  border: 'none',
+                  display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  justifyContent: 'center',
                   cursor: 'pointer',
-                  transition: 'transform 0.15s ease',
+                  transition: 'background-color 0.15s ease',
                 }}
-                onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.96)')}
-                onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.35)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.18)')}
               >
-                <span>{slide.ctaText}</span>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                  arrow_forward
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                  chevron_left
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={nextSlide}
+                aria-label="Next slide"
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                  backdropFilter: 'blur(12px)',
+                  color: '#ffffff',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.15s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.35)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.18)')}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                  chevron_right
                 </span>
               </button>
             </div>
           </div>
-        </div>
 
-        {/* Bottom-right Dots Indicator */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '12px',
-            right: '16px',
-            zIndex: 3,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            backgroundColor: 'rgba(27, 28, 28, 0.4)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            padding: '4px 8px',
-            borderRadius: 'var(--radius-full)',
-          }}
-        >
-          {slides.map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setCurrentIdx(idx)}
-              aria-label={`Chuyển đến slide ${idx + 1}`}
+          {/* Bottom Hero Editorial Typography & Actions */}
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 2,
+              maxWidth: '680px',
+            }}
+          >
+            <div
+              className="font-kicker"
               style={{
-                width: idx === currentIdx ? '16px' : '6px',
-                height: '6px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: idx === currentIdx ? '#ffffff' : 'rgba(255, 255, 255, 0.5)',
-                transition: 'all 0.25s ease',
-                cursor: 'pointer',
-                padding: 0,
+                color: 'rgba(255, 255, 255, 0.75)',
+                marginBottom: '8px',
+                fontSize: '12px',
+                letterSpacing: '0.14em',
               }}
-            />
-          ))}
+            >
+              LOOKBOOK EDITION • SHOPVIBE EXCLUSIVE
+            </div>
+
+            <h1
+              className="font-display-campaign"
+              style={{
+                color: '#ffffff',
+                textShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
+                margin: 0,
+              }}
+            >
+              {slide.title}
+            </h1>
+
+            <p
+              style={{
+                fontSize: '15px',
+                color: 'rgba(255, 255, 255, 0.88)',
+                marginTop: '12px',
+                lineHeight: 1.5,
+                maxWidth: '480px',
+              }}
+            >
+              {slide.subtitle || 'Khám phá các thiết kế thời trang may đo cao cấp với chất liệu tự nhiên bền vững.'}
+            </p>
+
+            {/* Nike Full-Pill Call to Actions */}
+            <div
+              style={{
+                marginTop: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => onCtaClick?.(slide)}
+                className="btn-pill-secondary"
+                style={{
+                  backgroundColor: '#ffffff',
+                  color: '#111111',
+                  padding: '12px 28px',
+                  fontWeight: 700,
+                  fontSize: '14.5px',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
+                }}
+              >
+                <span>{slide.ctaText || 'Khám Phá Ngay'}</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+                  arrow_forward
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const target = document.querySelector('#catalog-section');
+                  target?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="btn-pill-ghost"
+                style={{
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  padding: '12px 24px',
+                  backdropFilter: 'blur(8px)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                }}
+              >
+                <span>Xem Lookbook</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Bottom Dots Indicator */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '24px',
+              right: '28px',
+              zIndex: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            {slides.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setCurrentIdx(idx)}
+                aria-label={`Slide ${idx + 1}`}
+                style={{
+                  width: idx === currentIdx ? '28px' : '8px',
+                  height: '6px',
+                  borderRadius: '9999px',
+                  backgroundColor: idx === currentIdx ? '#ffffff' : 'rgba(255, 255, 255, 0.35)',
+                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                  cursor: 'pointer',
+                  border: 'none',
+                  padding: 0,
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .hero-banner-inner {
+            min-height: 360px !important;
+            padding: 24px 18px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

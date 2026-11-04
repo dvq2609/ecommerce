@@ -58,27 +58,41 @@ export const FlashSaleSection: React.FC<FlashSaleSectionProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 16px',
-          marginBottom: '12px',
+          padding: '0 20px',
+          marginBottom: '14px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span
-            className="material-symbols-outlined"
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
             style={{
-              color: 'var(--color-primary)',
-              fontSize: '24px',
-              fontVariationSettings: "'FILL' 1",
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#fff1f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            bolt
-          </span>
+            <span
+              className="material-symbols-outlined"
+              style={{
+                color: '#d30005',
+                fontSize: '20px',
+                fontVariationSettings: "'FILL' 1",
+              }}
+            >
+              bolt
+            </span>
+          </div>
           <h3
             style={{
-              fontSize: '18px',
-              fontWeight: 800,
-              color: 'var(--color-on-surface)',
-              letterSpacing: '-0.3px',
+              fontSize: '19px',
+              fontWeight: 900,
+              color: '#111111',
+              letterSpacing: '-0.02em',
+              textTransform: 'uppercase',
+              margin: 0,
             }}
           >
             Flash Sale
@@ -90,19 +104,19 @@ export const FlashSaleSection: React.FC<FlashSaleSectionProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
-              marginLeft: '4px',
-              fontWeight: 700,
-              fontSize: '11px',
-              color: 'var(--color-on-surface)',
+              marginLeft: '6px',
+              fontWeight: 800,
+              fontSize: '11.5px',
+              color: '#111111',
             }}
           >
             <span
               style={{
-                backgroundColor: 'var(--color-on-surface)',
+                backgroundColor: '#111111',
                 color: '#ffffff',
-                padding: '2px 5px',
-                borderRadius: '4px',
-                minWidth: '22px',
+                padding: '3px 6px',
+                borderRadius: '6px',
+                minWidth: '24px',
                 textAlign: 'center',
               }}
             >
@@ -111,11 +125,11 @@ export const FlashSaleSection: React.FC<FlashSaleSectionProps> = ({
             <span>:</span>
             <span
               style={{
-                backgroundColor: 'var(--color-on-surface)',
+                backgroundColor: '#111111',
                 color: '#ffffff',
-                padding: '2px 5px',
-                borderRadius: '4px',
-                minWidth: '22px',
+                padding: '3px 6px',
+                borderRadius: '6px',
+                minWidth: '24px',
                 textAlign: 'center',
               }}
             >
@@ -124,11 +138,11 @@ export const FlashSaleSection: React.FC<FlashSaleSectionProps> = ({
             <span>:</span>
             <span
               style={{
-                backgroundColor: 'var(--color-on-surface)',
+                backgroundColor: '#111111',
                 color: '#ffffff',
-                padding: '2px 5px',
-                borderRadius: '4px',
-                minWidth: '22px',
+                padding: '3px 6px',
+                borderRadius: '6px',
+                minWidth: '24px',
                 textAlign: 'center',
               }}
             >

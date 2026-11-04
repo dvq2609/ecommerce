@@ -17,23 +17,23 @@ export const ProductSpecifications: React.FC<ProductSpecificationsProps> = ({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '20px',
+        gap: '24px',
         width: '100%',
-        backgroundColor: 'var(--color-surface-card)',
-        padding: '20px',
-        borderRadius: 'var(--radius-xl)',
-        border: '1px solid var(--color-border-subtle)',
-        boxShadow: 'var(--shadow-sm)',
+        backgroundColor: '#ffffff',
+        padding: '28px',
+        borderRadius: '20px',
+        border: '1px solid var(--nike-hairline, #e5e5e5)',
       }}
     >
       {/* 1. Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3
           style={{
-            fontSize: '17px',
-            fontWeight: 700,
-            color: 'var(--color-on-surface)',
+            fontSize: '18px',
+            fontWeight: 800,
+            color: 'var(--nike-black, #111111)',
             letterSpacing: '-0.01em',
+            margin: 0,
           }}
         >
           Thông tin chi tiết
@@ -42,13 +42,14 @@ export const ProductSpecifications: React.FC<ProductSpecificationsProps> = ({
           style={{
             fontSize: '11.5px',
             fontWeight: 600,
-            padding: '2px 8px',
-            borderRadius: 'var(--radius-sm)',
-            backgroundColor: 'var(--color-surface-container-high)',
-            color: 'var(--color-on-surface-variant)',
+            padding: '4px 10px',
+            borderRadius: '9999px',
+            backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+            color: 'var(--nike-gray, #707072)',
+            border: '1px solid var(--nike-hairline, #e5e5e5)',
           }}
         >
-          Mã SP: {sku}
+          Mã SKU: {sku}
         </span>
       </div>
 

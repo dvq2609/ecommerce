@@ -44,11 +44,11 @@ export const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
           top: 0,
           zIndex: 40,
           width: '100%',
-          backgroundColor: 'rgba(252, 249, 248, 0.88)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: '1px solid var(--color-border-subtle)',
-          boxShadow: 'var(--shadow-soft)',
+          backgroundColor: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid var(--nike-hairline, #e5e5e5)',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
         }}
       >
         <div
@@ -171,7 +171,7 @@ export const ProductDetailHeader: React.FC<ProductDetailHeaderProps> = ({
                     minWidth: '16px',
                     height: '16px',
                     borderRadius: '9999px',
-                    backgroundColor: 'var(--color-primary)',
+                    backgroundColor: 'var(--nike-sale, #d30005)',
                     color: '#ffffff',
                     fontSize: '10px',
                     fontWeight: 700,

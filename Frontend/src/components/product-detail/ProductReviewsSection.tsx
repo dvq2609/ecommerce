@@ -23,22 +23,21 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '20px',
+        gap: '24px',
         width: '100%',
-        backgroundColor: 'var(--color-surface-card)',
-        padding: '20px',
-        borderRadius: 'var(--radius-xl)',
-        border: '1px solid var(--color-border-subtle)',
-        boxShadow: 'var(--shadow-sm)',
+        backgroundColor: '#ffffff',
+        padding: '28px',
+        borderRadius: '20px',
+        border: '1px solid var(--nike-hairline, #e5e5e5)',
       }}
     >
       {/* Header & Overall Rating */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--color-on-surface)' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--nike-black, #111111)', margin: 0 }}>
             Đánh giá từ khách hàng
           </h3>
-          <span style={{ fontSize: '12.5px', color: 'var(--color-on-surface-variant)' }}>
+          <span style={{ fontSize: '13px', color: 'var(--nike-gray, #707072)' }}>
             {new Intl.NumberFormat('vi-VN').format(ratingCount)} người mua đã đánh giá sản phẩm
           </span>
         </div>
@@ -48,10 +47,10 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            backgroundColor: 'var(--color-surface-container-low)',
-            padding: '6px 14px',
-            borderRadius: 'var(--radius-full)',
-            border: '1px solid var(--color-border-subtle)',
+            backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+            padding: '8px 16px',
+            borderRadius: '9999px',
+            border: '1px solid var(--nike-hairline, #e5e5e5)',
           }}
         >
           <span
@@ -60,10 +59,10 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
           >
             star
           </span>
-          <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-on-surface)' }}>
+          <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--nike-black, #111111)' }}>
             {rating}
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--color-on-surface-variant)' }}>/ 5.0</span>
+          <span style={{ fontSize: '12px', color: 'var(--nike-gray, #707072)' }}>/ 5.0</span>
         </div>
       </div>
 

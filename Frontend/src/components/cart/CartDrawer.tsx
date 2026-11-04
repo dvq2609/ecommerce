@@ -566,25 +566,17 @@ export const CartDrawer: React.FC = () => {
                   closeDrawer();
                   navigate('/cart');
                 }}
+                className="btn-pill-primary"
                 style={{
                   width: '100%',
-                  height: '46px',
-                  borderRadius: '9999px',
-                  backgroundColor: '#ff385c',
-                  color: '#ffffff',
-                  fontSize: '14px',
+                  height: '48px',
+                  fontSize: '14.5px',
                   fontWeight: 700,
-                  border: 'none',
-                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '6px',
-                  boxShadow: '0 2px 8px rgba(255, 56, 92, 0.25)',
-                  transition: 'background 150ms ease',
+                  gap: '8px',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e00b41')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ff385c')}
               >
                 <span>Xem giỏ hàng & Đặt hàng</span>
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>

@@ -18,10 +18,10 @@ export const ProductShippingGuarantees: React.FC<ProductShippingGuaranteesProps>
           display: 'flex',
           alignItems: 'flex-start',
           gap: '12px',
-          padding: '14px',
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: 'var(--color-surface-container-low)',
-          border: '1px solid var(--color-border-subtle)',
+          padding: '14px 16px',
+          borderRadius: '14px',
+          backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+          border: '1px solid var(--nike-hairline, #e5e5e5)',
         }}
       >
         <div
@@ -29,8 +29,9 @@ export const ProductShippingGuarantees: React.FC<ProductShippingGuaranteesProps>
             width: '38px',
             height: '38px',
             borderRadius: '50%',
-            backgroundColor: '#d0f8f1',
-            color: '#006a62',
+            backgroundColor: '#ffffff',
+            color: 'var(--nike-black, #111111)',
+            border: '1px solid var(--nike-hairline, #e5e5e5)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -44,28 +45,29 @@ export const ProductShippingGuarantees: React.FC<ProductShippingGuaranteesProps>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--color-on-surface)' }}>
+            <span style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--nike-black, #111111)' }}>
               Giao hàng dự kiến
             </span>
             <span
               style={{
                 fontSize: '11px',
                 fontWeight: 600,
-                padding: '1px 6px',
-                borderRadius: '4px',
-                backgroundColor: 'var(--color-surface-container-high)',
-                color: 'var(--color-on-surface)',
+                padding: '2px 8px',
+                borderRadius: '9999px',
+                backgroundColor: '#ffffff',
+                color: 'var(--nike-black, #111111)',
+                border: '1px solid var(--nike-hairline, #e5e5e5)',
               }}
             >
-              Nhanh
+              Hỏa tốc
             </span>
           </div>
 
-          <p style={{ fontSize: '13px', color: 'var(--color-on-surface-variant)' }}>
-            Nhận hàng vào <strong style={{ color: 'var(--color-on-surface)' }}>{shippingEstimate.deliveryDateText}</strong>
+          <p style={{ fontSize: '13px', color: 'var(--nike-gray, #707072)', margin: '2px 0 0 0' }}>
+            Nhận hàng vào <strong style={{ color: 'var(--nike-black, #111111)' }}>{shippingEstimate.deliveryDateText}</strong>
           </p>
 
-          <p style={{ fontSize: '12px', color: '#006a62', fontWeight: 600, marginTop: '2px' }}>
+          <p style={{ fontSize: '12px', color: '#15803d', fontWeight: 600, margin: '2px 0 0 0' }}>
             {shippingEstimate.freeShippingThresholdText}
           </p>
         </div>
@@ -75,7 +77,7 @@ export const ProductShippingGuarantees: React.FC<ProductShippingGuaranteesProps>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
           gap: '10px',
         }}
       >
@@ -84,9 +86,9 @@ export const ProductShippingGuarantees: React.FC<ProductShippingGuaranteesProps>
             key={idx}
             style={{
               padding: '12px 14px',
-              borderRadius: 'var(--radius-lg)',
-              backgroundColor: 'var(--color-surface-container-low)',
-              border: '1px solid var(--color-border-subtle)',
+              borderRadius: '12px',
+              backgroundColor: '#ffffff',
+              border: '1px solid var(--nike-hairline, #e5e5e5)',
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
@@ -94,15 +96,15 @@ export const ProductShippingGuarantees: React.FC<ProductShippingGuaranteesProps>
           >
             <span
               className="material-symbols-outlined"
-              style={{ fontSize: '22px', color: 'var(--color-primary)', flexShrink: 0 }}
+              style={{ fontSize: '20px', color: 'var(--nike-black, #111111)', flexShrink: 0 }}
             >
               {g.icon}
             </span>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--color-on-surface)' }}>
+              <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--nike-black, #111111)' }}>
                 {g.title}
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--color-on-surface-variant)' }}>
+              <span style={{ fontSize: '11px', color: 'var(--nike-gray, #707072)' }}>
                 {g.subtitle}
               </span>
             </div>

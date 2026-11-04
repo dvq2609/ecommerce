@@ -197,10 +197,10 @@ export const SellerChatPage: React.FC = () => {
         style={{
           display: 'grid',
           gridTemplateColumns: '320px minmax(0, 1fr)',
-          backgroundColor: 'var(--color-surface-card)',
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--color-border-subtle)',
-          boxShadow: 'var(--shadow-sm)',
+          backgroundColor: '#ffffff',
+          borderRadius: '16px',
+          border: '1px solid var(--nike-hairline, #e5e5e5)',
+          boxShadow: 'none',
           height: 'calc(100vh - 200px)',
           minHeight: '560px',
           overflow: 'hidden',
@@ -209,14 +209,14 @@ export const SellerChatPage: React.FC = () => {
         {/* ─── CỘT TRÁI: DANH SÁCH KHÁCH HÀNG ───────────────────────────────── */}
         <div
           style={{
-            borderRight: '1px solid var(--color-border-subtle)',
+            borderRight: '1px solid var(--nike-hairline, #e5e5e5)',
             display: 'flex',
             flexDirection: 'column',
-            backgroundColor: 'var(--color-surface-container-low)',
+            backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
           }}
         >
           {/* Thanh tìm kiếm khách hàng */}
-          <div style={{ padding: '16px', borderBottom: '1px solid var(--color-border-subtle)' }}>
+          <div style={{ padding: '16px', borderBottom: '1px solid var(--nike-hairline, #e5e5e5)' }}>
             <div style={{ position: 'relative' }}>
               <span
                 className="material-symbols-outlined"
@@ -225,7 +225,7 @@ export const SellerChatPage: React.FC = () => {
                   left: '12px',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: 'var(--color-on-surface-variant)',
+                  color: 'var(--nike-gray, #707072)',
                   fontSize: '18px',
                 }}
               >
@@ -239,11 +239,11 @@ export const SellerChatPage: React.FC = () => {
                 style={{
                   width: '100%',
                   padding: '8px 12px 8px 36px',
-                  borderRadius: '20px',
-                  border: '1px solid var(--color-border-subtle)',
+                  borderRadius: '9999px',
+                  border: '1px solid var(--nike-hairline, #e5e5e5)',
                   fontSize: '13px',
-                  backgroundColor: 'var(--color-surface-card)',
-                  color: 'var(--color-on-surface)',
+                  backgroundColor: '#ffffff',
+                  color: 'var(--nike-black, #111111)',
                   outline: 'none',
                   boxSizing: 'border-box',
                 }}
@@ -510,11 +510,11 @@ export const SellerChatPage: React.FC = () => {
                 onSubmit={handleSendMessage}
                 style={{
                   padding: '14px 20px',
-                  borderTop: '1px solid var(--color-border-subtle)',
+                  borderTop: '1px solid var(--nike-hairline, #e5e5e5)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  backgroundColor: 'var(--color-surface-card)',
+                  backgroundColor: '#ffffff',
                 }}
               >
                 <input
@@ -524,12 +524,12 @@ export const SellerChatPage: React.FC = () => {
                   onChange={(e) => setInputMessage(e.target.value)}
                   style={{
                     flex: 1,
-                    padding: '10px 16px',
-                    borderRadius: '24px',
-                    border: '1px solid var(--color-border-subtle)',
+                    padding: '10px 18px',
+                    borderRadius: '9999px',
+                    border: '1px solid var(--nike-hairline, #e5e5e5)',
                     fontSize: '13.5px',
-                    backgroundColor: 'var(--color-surface-container-low)',
-                    color: 'var(--color-on-surface)',
+                    backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+                    color: 'var(--nike-black, #111111)',
                     outline: 'none',
                   }}
                 />
@@ -537,14 +537,14 @@ export const SellerChatPage: React.FC = () => {
                   type="submit"
                   disabled={!inputMessage.trim()}
                   style={{
-                    height: '40px',
-                    padding: '0 18px',
-                    borderRadius: '20px',
-                    backgroundColor: inputMessage.trim() ? '#1b1c1c' : 'var(--color-surface-container-high)',
-                    color: '#ffffff',
+                    height: '42px',
+                    padding: '0 20px',
+                    borderRadius: '9999px',
+                    backgroundColor: inputMessage.trim() ? 'var(--nike-black, #111111)' : 'var(--nike-soft-cloud, #f5f5f7)',
+                    color: inputMessage.trim() ? '#ffffff' : 'var(--nike-gray, #707072)',
                     border: 'none',
                     fontSize: '13px',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',

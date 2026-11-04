@@ -49,6 +49,35 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-soft: 0 1px 8px rgba(0, 0, 0, 0.04);
   --shadow-bottom-nav: 0 -2px 12px rgba(0, 0, 0, 0.05);
+
+  /* ==========================================================================
+     Nike & Apple Design System Tokens
+     ========================================================================== */
+  --nike-black: #111111;
+  --nike-white: #ffffff;
+  --nike-soft-cloud: #f5f5f7;
+  --nike-charcoal: #39393b;
+  --nike-ash: #4b4b4d;
+  --nike-mute: #707072;
+  --nike-stone: #9e9ea0;
+  --nike-hairline: #e5e5e5;
+  --nike-hairline-soft: #f0f0f2;
+  --nike-sale: #d30005;
+  --nike-sale-deep: #780700;
+  --nike-success: #007d48;
+  --nike-info: #1151ff;
+
+  --apple-canvas: #ffffff;
+  --apple-surface: #f5f5f7;
+  --apple-hairline: #e5e5e5;
+  --apple-glass-bg: rgba(255, 255, 255, 0.85);
+
+  /* Semantic shortcuts */
+  --color-ink: var(--nike-black);
+  --color-canvas: var(--nike-white);
+  --color-surface-soft: var(--nike-soft-cloud);
+  --color-hairline: var(--nike-hairline);
+  --color-sale: var(--nike-sale);
 }
 
 *, *::before, *::after {
@@ -561,3 +590,302 @@ button {
     transform: translateX(0);
   }
 }
+
+/* ==========================================================================
+   Nike & Apple Typography & Component Primitives
+   ========================================================================== */
+
+/* Typography */
+.font-display-campaign {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: clamp(32px, 5.5vw, 68px);
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.font-heading-xl {
+  font-size: clamp(24px, 3.2vw, 36px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.font-heading-lg {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.font-heading-md {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.font-kicker {
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--nike-mute);
+}
+
+/* Button Pills (Nike Full-Pill Style) */
+.btn-pill-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--nike-black);
+  color: #ffffff;
+  border-radius: 9999px;
+  padding: 12px 24px;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border: 1px solid transparent;
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-pill-primary:hover {
+  background-color: #262626;
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.btn-pill-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-pill-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #ffffff;
+  color: var(--nike-black);
+  border: 1px solid var(--nike-hairline);
+  border-radius: 9999px;
+  padding: 12px 24px;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-pill-secondary:hover {
+  background-color: var(--nike-soft-cloud);
+  border-color: #d4d4d6;
+  text-decoration: none;
+  color: var(--nike-black);
+}
+
+.btn-pill-secondary:active {
+  transform: scale(0.97);
+}
+
+.btn-pill-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: transparent;
+  color: var(--nike-black);
+  border-radius: 9999px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-pill-ghost:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  text-decoration: none;
+}
+
+.btn-pill-ghost:active {
+  transform: scale(0.97);
+}
+
+/* Glassmorphism & Hairline Cards (Apple Style) */
+.glass-navbar {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.card-hairline {
+  background: #ffffff;
+  border: 1px solid var(--nike-hairline);
+  border-radius: 16px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.card-hairline:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+  border-color: #dcdce0;
+}
+
+/* Tags & Badges */
+.tag-pill-sale {
+  background-color: var(--nike-sale);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 11.5px;
+  border-radius: 9999px;
+  padding: 3px 9px;
+  letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.tag-pill-new {
+  background-color: var(--nike-black);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  padding: 3px 9px;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.tag-pill-neutral {
+  background-color: var(--nike-soft-cloud);
+  color: var(--nike-charcoal);
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 9999px;
+  padding: 4px 10px;
+  border: 1px solid var(--nike-hairline);
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+}
+
+/* Color Swatches Dot */
+.swatch-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.swatch-dot:hover {
+  transform: scale(1.25);
+}
+
+.swatch-dot.active {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 3.5px var(--nike-black);
+  transform: scale(1.15);
+}
+
+/* Smooth Image Hover Zoom */
+.img-zoom-parent {
+  overflow: hidden;
+  border-radius: 12px;
+  background-color: var(--nike-soft-cloud);
+  position: relative;
+}
+
+.img-zoom-parent img {
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.img-zoom-parent:hover img {
+  transform: scale(1.04);
+}
+
+/* ─── Apple Dynamic Island Floating Toast ──────────────────────────────────── */
+@keyframes dynamicIslandSlideUp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 16px) scale(0.92);
+  }
+  60% {
+    transform: translate(-50%, -2px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.toast-dynamic-island {
+  position: fixed;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  background-color: rgba(17, 17, 17, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 9999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  animation: dynamicIslandSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-width: 90vw;
+  white-space: nowrap;
+}
+
+/* ─── Skeleton Shimmer Loading Effect ──────────────────────────────────────── */
+@keyframes shimmerWave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f0f0f2 25%, #e4e4e7 50%, #f0f0f2 75%);
+  background-size: 200% 100%;
+  animation: shimmerWave 1.6s infinite ease-in-out;
+  border-radius: 8px;
+}
+
+/* ─── Mobile Horizontal Snap Scroll ────────────────────────────────────────── */
+.snap-scroll-x {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.snap-scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+.snap-item {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+

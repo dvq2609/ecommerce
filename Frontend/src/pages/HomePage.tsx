@@ -12,6 +12,7 @@ import { CategoryFilterBar } from '../components/home/CategoryFilterBar';
 import { FlashSaleSection } from '../components/home/FlashSaleSection';
 import { ProductCatalogSection } from '../components/home/ProductCatalogSection';
 import { BottomNavBar } from '../components/home/BottomNavBar';
+import { CuratedCollections } from '../components/home/CuratedCollections';
 import { HERO_SLIDES, TRUST_BADGES } from '../services/mockHomeData';
 import type { QuickCategory, ProductCatalogItem } from '../types/home';
 import { useCart } from '../context/CartContext';
@@ -126,11 +127,25 @@ export const HomePage: React.FC = () => {
         {/* 4. Editorial Hero Banner Slider */}
         <HeroSlider
           slides={HERO_SLIDES}
-          onCtaClick={(slide) => alert(`Khám phá chiến dịch: ${slide.title}`)}
+          onCtaClick={() => {
+            const target = document.querySelector('#curated-collections');
+            target?.scrollIntoView({ behavior: 'smooth' });
+          }}
         />
 
         {/* 5. Trust Value Strip */}
         <TrustBadgeStrip badges={TRUST_BADGES} />
+
+        {/* 5.5. Curated Lookbook Collections (Nike Style 4:5 Grid) */}
+        <div id="curated-collections">
+          <CuratedCollections
+            onSelectCollection={(filter) => {
+              setSearchQuery(filter);
+              const target = document.querySelector('#catalog-section');
+              target?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
+        </div>
 
         {/* 6. Category Quick Filter Bar */}
         <CategoryFilterBar

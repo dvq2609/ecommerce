@@ -40,22 +40,22 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
       }}
     >
       {/* 1. Color Selection */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-on-surface)' }}>
+            <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--nike-black, #111111)' }}>
               Màu sắc:
             </span>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-primary)' }}>
+            <span style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--nike-black, #111111)' }}>
               {currentColor?.name}
             </span>
           </div>
-          <span style={{ fontSize: '12px', color: 'var(--color-on-surface-variant)' }}>
-            {colors.length} màu sắc
+          <span style={{ fontSize: '12px', color: 'var(--nike-gray, #707072)' }}>
+            {colors.length} màu sắc có sẵn
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           {colors.map((c) => {
             const isSelected = c.id === selectedColorId;
             return (
@@ -63,34 +63,34 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
                 key={c.id}
                 type="button"
                 onClick={() => onSelectColor(c)}
+                title={c.name}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '8px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: isSelected ? 'var(--color-surface-card)' : 'var(--color-surface-container-low)',
-                  border: isSelected ? '2px solid var(--color-on-surface)' : '1px solid var(--color-border-subtle)',
-                  boxShadow: isSelected ? 'var(--shadow-sm)' : 'none',
+                  padding: '6px 14px 6px 8px',
+                  borderRadius: '9999px',
+                  backgroundColor: isSelected ? 'var(--nike-soft-cloud, #f5f5f7)' : 'transparent',
+                  border: isSelected ? '1.5px solid var(--nike-black, #111111)' : '1px solid var(--nike-hairline, #e5e5e5)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
               >
                 <span
                   style={{
-                    width: '18px',
-                    height: '18px',
+                    width: '20px',
+                    height: '20px',
                     borderRadius: '50%',
                     backgroundColor: c.hex,
                     border: '1px solid rgba(0,0,0,0.15)',
-                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.2)',
+                    boxShadow: isSelected ? '0 0 0 2px #fff, 0 0 0 3.5px var(--nike-black, #111111)' : 'none',
                   }}
                 />
                 <span
                   style={{
                     fontSize: '13px',
                     fontWeight: isSelected ? 700 : 500,
-                    color: 'var(--color-on-surface)',
+                    color: 'var(--nike-black, #111111)',
                   }}
                 >
                   {c.name}
@@ -102,13 +102,13 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
       </div>
 
       {/* 2. Size Selection */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-on-surface)' }}>
+            <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--nike-black, #111111)' }}>
               Kích thước:
             </span>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-primary)' }}>
+            <span style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--nike-black, #111111)' }}>
               {currentSize?.name} {currentSize?.description ? `(${currentSize.description})` : ''}
             </span>
           </div>
@@ -117,23 +117,26 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
             type="button"
             onClick={() => setShowSizeModal(true)}
             style={{
-              fontSize: '12px',
-              color: 'var(--color-primary)',
+              fontSize: '12.5px',
+              color: 'var(--nike-black, #111111)',
               fontWeight: 600,
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
               textDecoration: 'underline',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>
               straighten
             </span>
             Bảng quy đổi cỡ
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))', gap: '8px' }}>
           {sizes.map((s) => {
             const isSelected = s.id === selectedSizeId;
             return (
@@ -143,26 +146,32 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
                 disabled={!s.inStock}
                 onClick={() => onSelectSize(s)}
                 style={{
-                  minWidth: '56px',
-                  padding: '8px 16px',
-                  borderRadius: 'var(--radius-md)',
+                  height: '44px',
+                  borderRadius: '10px',
                   backgroundColor: !s.inStock
-                    ? 'var(--color-surface-container)'
+                    ? 'var(--nike-soft-cloud, #f5f5f7)'
                     : isSelected
-                    ? 'var(--color-on-surface)'
-                    : 'var(--color-surface-container-low)',
+                    ? 'var(--nike-black, #111111)'
+                    : '#ffffff',
                   color: !s.inStock
-                    ? 'var(--color-outline)'
+                    ? 'var(--nike-gray, #707072)'
                     : isSelected
                     ? '#ffffff'
-                    : 'var(--color-on-surface)',
-                  border: isSelected ? '2px solid var(--color-on-surface)' : '1px solid var(--color-border-subtle)',
+                    : 'var(--nike-black, #111111)',
+                  border: isSelected
+                    ? '1.5px solid var(--nike-black, #111111)'
+                    : !s.inStock
+                    ? '1px dashed var(--nike-hairline, #e5e5e5)'
+                    : '1px solid var(--nike-hairline, #e5e5e5)',
                   fontSize: '13.5px',
                   fontWeight: 700,
                   cursor: s.inStock ? 'pointer' : 'not-allowed',
                   opacity: s.inStock ? 1 : 0.5,
                   transition: 'all 0.15s ease',
                   position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 {s.name}
@@ -170,13 +179,11 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
                   <span
                     style={{
                       position: 'absolute',
-                      top: '-6px',
-                      right: '-6px',
+                      top: '2px',
+                      right: '3px',
                       fontSize: '9px',
-                      backgroundColor: 'var(--color-surface-container-high)',
-                      color: 'var(--color-on-surface-variant)',
-                      padding: '1px 4px',
-                      borderRadius: '4px',
+                      color: 'var(--nike-gray, #707072)',
+                      fontWeight: 600,
                     }}
                   >
                     Hết
@@ -190,18 +197,18 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
 
       {/* 3. Quantity Selector */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-on-surface)' }}>
+        <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--nike-black, #111111)' }}>
           Số lượng:
         </span>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border-subtle)',
-              backgroundColor: 'var(--color-surface-container-low)',
+              borderRadius: '9999px',
+              border: '1px solid var(--nike-hairline, #e5e5e5)',
+              backgroundColor: '#ffffff',
               overflow: 'hidden',
             }}
           >
@@ -210,13 +217,15 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
               disabled={quantity <= 1}
               onClick={() => onChangeQuantity(Math.max(1, quantity - 1))}
               style={{
-                width: '36px',
-                height: '36px',
+                width: '38px',
+                height: '38px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: quantity <= 1 ? 'var(--color-outline)' : 'var(--color-on-surface)',
+                color: quantity <= 1 ? 'var(--nike-hairline, #e5e5e5)' : 'var(--nike-black, #111111)',
                 cursor: quantity <= 1 ? 'not-allowed' : 'pointer',
+                background: 'none',
+                border: 'none',
               }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
@@ -226,11 +235,11 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
 
             <span
               style={{
-                width: '40px',
+                width: '36px',
                 textAlign: 'center',
                 fontSize: '14px',
                 fontWeight: 700,
-                color: 'var(--color-on-surface)',
+                color: 'var(--nike-black, #111111)',
               }}
             >
               {quantity}
@@ -241,13 +250,15 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
               disabled={quantity >= stockQuantity}
               onClick={() => onChangeQuantity(Math.min(stockQuantity, quantity + 1))}
               style={{
-                width: '36px',
-                height: '36px',
+                width: '38px',
+                height: '38px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: quantity >= stockQuantity ? 'var(--color-outline)' : 'var(--color-on-surface)',
+                color: quantity >= stockQuantity ? 'var(--nike-hairline, #e5e5e5)' : 'var(--nike-black, #111111)',
                 cursor: quantity >= stockQuantity ? 'not-allowed' : 'pointer',
+                background: 'none',
+                border: 'none',
               }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
@@ -256,7 +267,7 @@ export const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
             </button>
           </div>
 
-          <span style={{ fontSize: '12px', color: 'var(--color-on-surface-variant)' }}>
+          <span style={{ fontSize: '12.5px', color: 'var(--nike-gray, #707072)' }}>
             Còn {stockQuantity} sản phẩm
           </span>
         </div>

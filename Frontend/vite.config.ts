@@ -5,8 +5,21 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '0.0.0.0',
+    port: 5173,
     proxy: {
       '/api': {
+        target: 'http://localhost:5216',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/hubs': {
+        target: 'http://localhost:5216',
+        changeOrigin: true,
+        ws: true,
+        secure: false,
+      },
+      '/uploads': {
         target: 'http://localhost:5216',
         changeOrigin: true,
         secure: false,
@@ -14,4 +27,3 @@ export default defineConfig({
     },
   },
 })
-

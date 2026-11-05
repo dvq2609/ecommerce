@@ -372,6 +372,13 @@ namespace Backend.Migrations
                     b.Property<decimal>("DiscountAmount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("DiscountVoucherCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("DiscountVoucherId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("FinalAmount")
                         .HasColumnType("decimal(18,2)");
 
@@ -415,8 +422,18 @@ namespace Backend.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<decimal>("ShippingDiscountAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal>("ShippingFee")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ShippingVoucherCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("ShippingVoucherId")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
@@ -429,9 +446,13 @@ namespace Backend.Migrations
 
                     b.HasKey("OrderId");
 
+                    b.HasIndex("DiscountVoucherId");
+
                     b.HasIndex("IdempotencyKey")
                         .HasDatabaseName("IX_Orders_IdempotencyKey")
                         .HasFilter("[IdempotencyKey] IS NOT NULL");
+
+                    b.HasIndex("ShippingVoucherId");
 
                     b.HasIndex(new[] { "OrderCode" }, "IX_Orders_OrderCode")
                         .IsUnique();
@@ -1250,6 +1271,116 @@ namespace Backend.Migrations
                     b.ToTable("UserProfile");
                 });
 
+            modelBuilder.Entity("Backend.Models.Voucher", b =>
+                {
+                    b.Property<int>("VoucherId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VoucherId"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("DiscountType")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("MaxDiscountAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("MaxUsagePerUser")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MinOrderValue")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsageLimit")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsedCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("VoucherId");
+
+                    b.HasIndex(new[] { "Code" }, "IX_Vouchers_Code")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "DiscountType" }, "IX_Vouchers_DiscountType");
+
+                    b.HasIndex(new[] { "IsActive" }, "IX_Vouchers_IsActive");
+
+                    b.ToTable("Vouchers");
+                });
+
+            modelBuilder.Entity("Backend.Models.VoucherUsage", b =>
+                {
+                    b.Property<int>("VoucherUsageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VoucherUsageId"));
+
+                    b.Property<decimal>("DiscountApplied")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsRefunded")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsShippingVoucher")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VoucherId")
+                        .HasColumnType("int");
+
+                    b.HasKey("VoucherUsageId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex(new[] { "OrderId" }, "IX_VoucherUsages_OrderId");
+
+                    b.HasIndex(new[] { "VoucherId", "UserId" }, "IX_VoucherUsages_VoucherId_UserId");
+
+                    b.ToTable("VoucherUsages");
+                });
+
             modelBuilder.Entity("Backend.Models.Cart", b =>
                 {
                     b.HasOne("Backend.Models.User", "User")
@@ -1352,11 +1483,25 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.Order", b =>
                 {
+                    b.HasOne("Backend.Models.Voucher", "DiscountVoucher")
+                        .WithMany()
+                        .HasForeignKey("DiscountVoucherId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Backend.Models.Voucher", "ShippingVoucher")
+                        .WithMany()
+                        .HasForeignKey("ShippingVoucherId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Backend.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("DiscountVoucher");
+
+                    b.Navigation("ShippingVoucher");
 
                     b.Navigation("User");
                 });
@@ -1556,6 +1701,33 @@ namespace Backend.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Backend.Models.VoucherUsage", b =>
+                {
+                    b.HasOne("Backend.Models.Order", "Order")
+                        .WithMany("VoucherUsages")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Backend.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Backend.Models.Voucher", "Voucher")
+                        .WithMany("VoucherUsages")
+                        .HasForeignKey("VoucherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("User");
+
+                    b.Navigation("Voucher");
+                });
+
             modelBuilder.Entity("Backend.Models.Brand", b =>
                 {
                     b.Navigation("Products");
@@ -1588,6 +1760,8 @@ namespace Backend.Migrations
                     b.Navigation("OrderItems");
 
                     b.Navigation("PaymentTransactions");
+
+                    b.Navigation("VoucherUsages");
                 });
 
             modelBuilder.Entity("Backend.Models.Product", b =>
@@ -1623,6 +1797,11 @@ namespace Backend.Migrations
                     b.Navigation("Addresses");
 
                     b.Navigation("RefreshTokens");
+                });
+
+            modelBuilder.Entity("Backend.Models.Voucher", b =>
+                {
+                    b.Navigation("VoucherUsages");
                 });
 #pragma warning restore 612, 618
         }

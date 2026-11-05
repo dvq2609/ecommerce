@@ -51,7 +51,7 @@ export interface CreateReviewRequest {
   images?: string[];
 }
 
-const API_BASE = 'http://localhost:5216/api';
+const API_BASE = '/api';
 
 export const reviewAndNotifyService = {
   // Review APIs

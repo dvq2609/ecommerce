@@ -474,6 +474,12 @@ export const OrdersHistoryPage: React.FC = () => {
                   <span style={styles.infoLabel}>Phí giao hàng:</span>
                   <span>{selectedOrder.shippingFee === 0 ? 'Miễn phí' : formatPrice(selectedOrder.shippingFee)}</span>
                 </div>
+                {(selectedOrder.shippingDiscountAmount ?? 0) > 0 && (
+                  <div style={styles.infoRow}>
+                    <span style={styles.infoLabel}>Mã Freeship{selectedOrder.shippingVoucherCode ? ' (' + selectedOrder.shippingVoucherCode + ')' : ''}:</span>
+                    <span style={{ color: '#0f766e', fontWeight: 600 }}>-{formatPrice(selectedOrder.shippingDiscountAmount ?? 0)}</span>
+                  </div>
+                )}
                 {selectedOrder.discountAmount > 0 && (
                   <div style={styles.infoRow}>
                     <span style={styles.infoLabel}>Giảm giá:</span>

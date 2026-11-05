@@ -8,6 +8,7 @@ import { LocationBar } from '../components/home/LocationBar';
 import { SearchFilterBar } from '../components/home/SearchFilterBar';
 import { HeroSlider } from '../components/home/HeroSlider';
 import { TrustBadgeStrip } from '../components/home/TrustBadgeStrip';
+import { VoucherStripSection } from '../components/home/VoucherStripSection';
 import { CategoryFilterBar } from '../components/home/CategoryFilterBar';
 import { FlashSaleSection } from '../components/home/FlashSaleSection';
 import { ProductCatalogSection } from '../components/home/ProductCatalogSection';
@@ -135,6 +136,9 @@ export const HomePage: React.FC = () => {
 
         {/* 5. Trust Value Strip */}
         <TrustBadgeStrip badges={TRUST_BADGES} />
+
+        {/* 5.2. Voucher & Freeship Ticket Strip */}
+        <VoucherStripSection />
 
         {/* 5.5. Curated Lookbook Collections (Nike Style 4:5 Grid) */}
         <div id="curated-collections">

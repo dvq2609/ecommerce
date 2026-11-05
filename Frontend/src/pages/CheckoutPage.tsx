@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { authService } from '../services/authService';
@@ -6,10 +6,12 @@ import { orderService } from '../services/orderService';
 import { paymentService } from '../services/paymentService';
 import { shippingService } from '../services/shippingService';
 import { userService } from '../services/userService';
+import { voucherService } from '../services/voucherService';
 import { HomeHeader } from '../components/home/HomeHeader';
 import { BottomNavBar } from '../components/home/BottomNavBar';
 import type { CreateOrderRequest } from '../types/order';
 import type { UserAddress } from '../types/user';
+import type { AvailableVoucherItem } from '../types/voucher';
 
 interface BuyNowState {
   buyNowItem?: {
@@ -42,7 +44,6 @@ const PAYMENT_OPTIONS = [
   },
 ] as const;
 
-// ─── component ────────────────────────────────────────────────────────────────
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -60,6 +61,13 @@ export const CheckoutPage: React.FC = () => {
   // Sổ địa chỉ đã lưu
   const [savedAddresses, setSavedAddresses] = useState<UserAddress[]>([]);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
+
+  // Voucher Giảm Giá Đơn Hàng (Hiển thị mặc định trực tiếp tại trang Thanh toán)
+  const [availableDiscountVouchers, setAvailableDiscountVouchers] = useState<AvailableVoucherItem[]>([]);
+  const [selectedDiscountCode, setSelectedDiscountCode] = useState<string | null>(null);
+  const [productDiscountAmount, setProductDiscountAmount] = useState<number>(0);
+  const [quickVoucherInput, setQuickVoucherInput] = useState<string>('');
+  const [voucherMessage, setVoucherMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   // Form state
   const [form, setForm] = useState({
@@ -129,21 +137,97 @@ export const CheckoutPage: React.FC = () => {
       }
     };
 
-    const timer = setTimeout(calc, 250);
+    const timer = setTimeout(calc, 200);
     return () => {
       active = false;
       clearTimeout(timer);
     };
   }, [form.shippingAddress, effectiveTotalAmount]);
 
-  const finalAmount = effectiveTotalAmount + shippingFee;
+  // Tải danh sách Voucher giảm giá khả dụng & tự động kiểm tra mã đang chọn khi tổng tiền thay đổi
+  const syncVouchers = useCallback(async () => {
+    if (effectiveTotalAmount <= 0 || !localStorage.getItem('accessToken')) return;
+    try {
+      const grouped = await voucherService.getAvailableVouchers(effectiveTotalAmount, shippingFee);
+      setAvailableDiscountVouchers(grouped.discountVouchers || []);
+
+      let validDisc = selectedDiscountCode;
+      if (validDisc) {
+        const foundDisc = grouped.discountVouchers.find((v) => v.code === validDisc);
+        if (!foundDisc || !foundDisc.isEligible) {
+          validDisc = null;
+          setSelectedDiscountCode(null);
+        }
+      }
+
+      if (validDisc) {
+        const stackRes = await voucherService.calculateStack({
+          shippingVoucherCode: null,
+          discountVoucherCode: validDisc,
+          orderTotal: effectiveTotalAmount,
+          shippingFee,
+        });
+        setProductDiscountAmount(stackRes.productDiscountAmount);
+      } else {
+        setProductDiscountAmount(0);
+      }
+    } catch (err) {
+      console.error('Lỗi đồng bộ voucher:', err);
+    }
+  }, [effectiveTotalAmount, shippingFee, selectedDiscountCode]);
+
+  useEffect(() => {
+    syncVouchers();
+  }, [syncVouchers]);
+
+  // Xử lý khi người dùng nhập nhanh 1 mã vào ô input
+  const handleQuickApplyCode = async () => {
+    const code = quickVoucherInput.trim().toUpperCase();
+    if (!code) return;
+    setVoucherMessage(null);
+
+    try {
+      const res = await voucherService.calculateStack({
+        shippingVoucherCode: null,
+        discountVoucherCode: selectedDiscountCode,
+        quickInputCode: code,
+        orderTotal: effectiveTotalAmount,
+        shippingFee,
+      });
+
+      if (res.appliedDiscountVoucherCode) {
+        setSelectedDiscountCode(res.appliedDiscountVoucherCode);
+      }
+
+      setProductDiscountAmount(res.productDiscountAmount);
+      setQuickVoucherInput('');
+      setVoucherMessage({ text: res.message, type: 'success' });
+    } catch (err: unknown) {
+      setVoucherMessage({
+        text: err instanceof Error ? err.message : 'Không thể áp dụng mã ưu đãi.',
+        type: 'error',
+      });
+    }
+  };
+
+  const handleRemoveDiscountVoucher = () => {
+    setSelectedDiscountCode(null);
+    setProductDiscountAmount(0);
+    setVoucherMessage(null);
+  };
+
+  const finalShippingFee = shippingFee;
+  const finalSubtotal = Math.max(0, effectiveTotalAmount - productDiscountAmount);
+  const finalAmount = finalSubtotal + finalShippingFee;
+
   const progressPct = freeShippingThreshold > 0
     ? Math.min((effectiveTotalAmount / freeShippingThreshold) * 100, 100)
     : 100;
 
   // Load Sổ địa chỉ và điền sẵn địa chỉ mặc định
   useEffect(() => {
-    userService.getAddresses()
+    userService
+      .getAddresses()
       .then((res) => {
         if (res && res.data && res.data.length > 0) {
           setSavedAddresses(res.data);
@@ -212,15 +296,17 @@ export const CheckoutPage: React.FC = () => {
       shippingAddress: form.shippingAddress.trim(),
       note: form.note.trim() || undefined,
       paymentMethod: form.paymentMethod,
+      shippingVoucherCode: null,
+      discountVoucherCode: selectedDiscountCode || null,
       saveToProfile: form.saveToProfile,
       items: buyNowItem
         ? [
-          {
-            productId: buyNowItem.productId,
-            productVariantId: buyNowItem.productVariantId ?? null,
-            quantity: buyNowItem.quantity,
-          },
-        ]
+            {
+              productId: buyNowItem.productId,
+              productVariantId: buyNowItem.productVariantId ?? null,
+              quantity: buyNowItem.quantity,
+            },
+          ]
         : null,
     };
 
@@ -264,6 +350,8 @@ export const CheckoutPage: React.FC = () => {
     );
   }
 
+  const eligibleDiscountCount = availableDiscountVouchers.filter((v) => v.isEligible).length;
+
   return (
     <div style={styles.page}>
       <HomeHeader
@@ -283,12 +371,12 @@ export const CheckoutPage: React.FC = () => {
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
-          <h1 style={styles.pageTitle}>Thanh toán</h1>
+          <h1 style={styles.pageTitle}>Thanh toán đơn hàng</h1>
         </div>
 
         <div style={styles.grid}>
           {/* ════════════ LEFT COLUMN: FORM ════════════ */}
-          <form onSubmit={handleSubmit} style={styles.formCol} noValidate>
+          <form id="__checkout_form__" onSubmit={handleSubmit} style={styles.formCol} noValidate>
             {/* ── Section 1: Delivery Info ── */}
             <section style={styles.card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
@@ -301,13 +389,13 @@ export const CheckoutPage: React.FC = () => {
                     type="button"
                     onClick={() => setShowAddressPicker(!showAddressPicker)}
                     style={{
-                      background: 'none',
-                      border: '1px solid #dddddd',
-                      borderRadius: 8,
-                      padding: '6px 12px',
+                      background: '#ffffff',
+                      border: '1px solid var(--nike-hairline, #e5e5e5)',
+                      borderRadius: 9999,
+                      padding: '6px 14px',
                       fontSize: 12.5,
-                      fontWeight: 600,
-                      color: '#ff385c',
+                      fontWeight: 700,
+                      color: 'var(--nike-black, #111111)',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -322,8 +410,8 @@ export const CheckoutPage: React.FC = () => {
 
               {/* Quick Address Picker List */}
               {showAddressPicker && savedAddresses.length > 0 && (
-                <div style={{ backgroundColor: '#f9f9f9', borderRadius: 10, padding: 12, marginBottom: 16, border: '1px solid #ebebeb' }}>
-                  <p style={{ fontSize: 12.5, fontWeight: 600, color: '#717171', margin: '0 0 8px' }}>
+                <div style={{ backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)', borderRadius: 12, padding: 12, marginBottom: 16, border: '1px solid var(--nike-hairline, #e5e5e5)' }}>
+                  <p style={{ fontSize: 12.5, fontWeight: 700, color: '#707072', margin: '0 0 8px' }}>
                     Chọn nhanh địa chỉ đã lưu của bạn:
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -341,8 +429,8 @@ export const CheckoutPage: React.FC = () => {
                         }}
                         style={{
                           backgroundColor: '#ffffff',
-                          borderRadius: 8,
-                          border: '1px solid #dddddd',
+                          borderRadius: 10,
+                          border: '1px solid var(--nike-hairline, #e5e5e5)',
                           padding: '10px 14px',
                           cursor: 'pointer',
                           display: 'flex',
@@ -353,20 +441,20 @@ export const CheckoutPage: React.FC = () => {
                       >
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <strong style={{ fontSize: 13, color: '#222' }}>{addr.receiverName}</strong>
-                            <span style={{ fontSize: 12, color: '#717171' }}>• {addr.receiverPhone}</span>
+                            <strong style={{ fontSize: 13, color: '#111111' }}>{addr.receiverName}</strong>
+                            <span style={{ fontSize: 12, color: '#707072' }}>• {addr.receiverPhone}</span>
                             <span style={{ fontSize: 11, padding: '1px 6px', borderRadius: 4, backgroundColor: '#f0f0f0', color: '#555' }}>
                               {addr.addressType}
                             </span>
                             {addr.isDefault && (
-                              <span style={{ fontSize: 10, color: '#ff385c', fontWeight: 700 }}>[Mặc định]</span>
+                              <span style={{ fontSize: 10, color: 'var(--nike-sale, #d30005)', fontWeight: 800 }}>[Mặc định]</span>
                             )}
                           </div>
                           <p style={{ fontSize: 12.5, color: '#444', margin: '4px 0 0' }}>
                             {addr.fullAddress || addr.streetAddress}
                           </p>
                         </div>
-                        <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#ff385c' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#111111' }}>
                           check_circle
                         </span>
                       </div>
@@ -439,7 +527,7 @@ export const CheckoutPage: React.FC = () => {
                 {errors.shippingAddress && <p style={styles.errorMsg}>{errors.shippingAddress}</p>}
               </div>
 
-              {/* Note (textarea) */}
+              {/* Note */}
               <div style={styles.field}>
                 <label htmlFor="note" style={styles.fieldLabel}>
                   Ghi chú đơn hàng <span style={styles.optionalMark}>(không bắt buộc)</span>
@@ -500,13 +588,15 @@ export const CheckoutPage: React.FC = () => {
                     />
                     <span style={styles.paymentIcon}>{opt.icon}</span>
                     <div style={{ flex: 1 }}>
-                      <p style={{ margin: 0, fontWeight: 600, fontSize: 15, color: '#222' }}>{opt.label}</p>
-                      <p style={{ margin: 0, fontSize: 13, color: '#6a6a6a', marginTop: 2 }}>{opt.desc}</p>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#111111' }}>{opt.label}</p>
+                      <p style={{ margin: 0, fontSize: 13, color: '#707072', marginTop: 2 }}>{opt.desc}</p>
                     </div>
-                    <div style={{
-                      ...styles.radioCircle,
-                      ...(form.paymentMethod === opt.value ? styles.radioCircleActive : {}),
-                    }}>
+                    <div
+                      style={{
+                        ...styles.radioCircle,
+                        ...(form.paymentMethod === opt.value ? styles.radioCircleActive : {}),
+                      }}
+                    >
                       {form.paymentMethod === opt.value && <div style={styles.radioDot} />}
                     </div>
                   </label>
@@ -525,34 +615,15 @@ export const CheckoutPage: React.FC = () => {
                 {apiError}
               </div>
             )}
-
-            {/* ── Submit (mobile only — sticky; desktop in right col) ── */}
-            <button
-              type="submit"
-              disabled={submitting || effectiveItems.length === 0}
-              style={{
-                ...styles.submitBtn,
-                ...(submitting ? styles.submitBtnLoading : {}),
-              }}
-              aria-label="Đặt hàng"
-            >
-              {submitting ? (
-                <>
-                  <span style={styles.btnSpinner} /> Đang xử lý…
-                </>
-              ) : (
-                `Đặt hàng — ${formatPrice(finalAmount)}`
-              )}
-            </button>
           </form>
 
-          {/* ════════════ RIGHT COLUMN: ORDER SUMMARY ════════════ */}
+          {/* ════════════ RIGHT COLUMN: ORDER SUMMARY + DUAL VOUCHER SELECTOR ════════════ */}
           <aside style={styles.summaryCol}>
             <div style={styles.card}>
               <h2 style={styles.sectionTitle}>
                 <span style={styles.sectionIcon}>🛍️</span>
                 Tóm tắt đơn hàng
-                <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 400, color: '#6a6a6a' }}>
+                <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 500, color: '#707072' }}>
                   {effectiveItems.length} sản phẩm
                 </span>
               </h2>
@@ -561,7 +632,6 @@ export const CheckoutPage: React.FC = () => {
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {effectiveItems.map((item) => (
                   <li key={item.cartItemId} style={styles.itemRow}>
-                    {/* Image */}
                     <div style={styles.itemImgWrap}>
                       {item.productImage ? (
                         <img src={item.productImage} alt={item.productName} style={styles.itemImg} />
@@ -571,7 +641,6 @@ export const CheckoutPage: React.FC = () => {
                       <span style={styles.qtyBadge}>{item.quantity}</span>
                     </div>
 
-                    {/* Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={styles.itemName}>{item.productName}</p>
                       {(item.colorName || item.sizeName) && (
@@ -581,7 +650,6 @@ export const CheckoutPage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Price */}
                     <p style={styles.itemPrice}>{formatPrice(item.totalPrice)}</p>
                   </li>
                 ))}
@@ -589,55 +657,295 @@ export const CheckoutPage: React.FC = () => {
 
               <div style={styles.divider} />
 
-              {/* Free ship progress */}
-              {shippingFee > 0 && freeShippingThreshold > 0 && (
+              {/* ── DISCOUNT VOUCHER BOX (MẶC ĐỊNH HIỂN THỊ TRỰC TIẾP) ── */}
+              <div
+                style={{
+                  backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
+                  borderRadius: 12,
+                  padding: '14px',
+                  border: '1px solid var(--nike-hairline, #e5e5e5)',
+                  marginBottom: 16,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13.5, fontWeight: 800, color: '#111111' }}>
+                    <span>🎟️</span>
+                    <span>Mã giảm giá ShopVibe ({eligibleDiscountCount} khả dụng)</span>
+                  </div>
+                  {selectedDiscountCode && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveDiscountVoucher}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: '#707072',
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      Bỏ chọn mã
+                    </button>
+                  )}
+                </div>
+
+                {/* Quick input code */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: availableDiscountVouchers.length > 0 ? 12 : 0 }}>
+                  <input
+                    type="text"
+                    placeholder="Nhập mã giảm giá đơn hàng…"
+                    value={quickVoucherInput}
+                    onChange={(e) => setQuickVoucherInput(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleQuickApplyCode();
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      height: 38,
+                      padding: '0 12px',
+                      borderRadius: 9999,
+                      border: '1px solid var(--nike-hairline, #e5e5e5)',
+                      backgroundColor: '#ffffff',
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      letterSpacing: '0.03em',
+                      outline: 'none',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleQuickApplyCode}
+                    className="btn-pill-primary"
+                    style={{
+                      height: 38,
+                      padding: '0 16px',
+                      borderRadius: 9999,
+                      border: 'none',
+                      backgroundColor: '#111111',
+                      color: '#ffffff',
+                      fontSize: 12.5,
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Áp dụng
+                  </button>
+                </div>
+
+                {/* Danh sách Mã giảm giá hiển thị mặc định ngay trong phần Thanh toán */}
+                {availableDiscountVouchers.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 240, overflowY: 'auto' }}>
+                    {availableDiscountVouchers.map((v) => {
+                      const isSelected = selectedDiscountCode === v.code;
+                      return (
+                        <div
+                          key={v.voucherId}
+                          onClick={async () => {
+                            if (!v.isEligible) return;
+                            if (isSelected) {
+                              handleRemoveDiscountVoucher();
+                              return;
+                            }
+                            setVoucherMessage(null);
+                            try {
+                              const res = await voucherService.calculateStack({
+                                shippingVoucherCode: null,
+                                discountVoucherCode: v.code,
+                                orderTotal: effectiveTotalAmount,
+                                shippingFee,
+                              });
+                              setSelectedDiscountCode(res.appliedDiscountVoucherCode ?? null);
+                              setProductDiscountAmount(res.productDiscountAmount);
+                              setVoucherMessage({ text: res.message, type: 'success' });
+                            } catch (err: unknown) {
+                              setVoucherMessage({
+                                text: err instanceof Error ? err.message : 'Không thể áp dụng mã.',
+                                type: 'error',
+                              });
+                            }
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            padding: '10px 12px',
+                            borderRadius: 10,
+                            border: isSelected
+                              ? '1.5px solid #111111'
+                              : '1px solid var(--nike-hairline, #e5e5e5)',
+                            backgroundColor: !v.isEligible
+                              ? '#fafafa'
+                              : isSelected
+                              ? '#ffffff'
+                              : '#ffffff',
+                            opacity: v.isEligible ? 1 : 0.6,
+                            cursor: v.isEligible ? 'pointer' : 'not-allowed',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 42,
+                              height: 42,
+                              borderRadius: 8,
+                              backgroundColor: isSelected ? 'var(--nike-sale, #d30005)' : '#111111',
+                              color: '#ffffff',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 900,
+                              fontSize: 10.5,
+                              flexShrink: 0,
+                            }}
+                          >
+                            <span>🏷️</span>
+                            <span>
+                              {v.discountType === 0
+                                ? `-${v.discountValue}%`
+                                : `-${Math.round(v.discountValue / 1000)}K`}
+                            </span>
+                          </div>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <strong
+                                style={{
+                                  fontSize: 12.5,
+                                  color: '#111111',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                }}
+                              >
+                                {v.title}
+                              </strong>
+                              <span
+                                style={{
+                                  fontSize: 10.5,
+                                  fontWeight: 800,
+                                  padding: '1px 6px',
+                                  borderRadius: 4,
+                                  backgroundColor: '#f0f0f0',
+                                  color: '#111111',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {v.code}
+                              </span>
+                            </div>
+                            <p style={{ margin: '2px 0 0', fontSize: 11.5, color: '#707072' }}>
+                              Đơn tối thiểu {formatPrice(v.minOrderValue)}
+                              {v.maxDiscountAmount ? ` • Tối đa ${formatPrice(v.maxDiscountAmount)}` : ''}
+                            </p>
+                            {!v.isEligible && v.ineligibleReason && (
+                              <p style={{ margin: '2px 0 0', fontSize: 11, fontWeight: 700, color: '#d30005' }}>
+                                ⚠️ {v.ineligibleReason}
+                              </p>
+                            )}
+                          </div>
+
+                          <input
+                            type="radio"
+                            checked={isSelected}
+                            disabled={!v.isEligible}
+                            readOnly
+                            style={{ width: 16, height: 16, accentColor: '#111111', flexShrink: 0 }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {voucherMessage && (
+                  <p
+                    style={{
+                      margin: '8px 0 0',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: voucherMessage.type === 'success' ? '#0f766e' : '#d30005',
+                    }}
+                  >
+                    {voucherMessage.text}
+                  </p>
+                )}
+              </div>
+
+              {/* Free ship progress (Chính sách Freeship từ trang /admin/shipping) */}
+              {finalShippingFee > 0 && freeShippingThreshold > 0 && (
                 <div style={{ marginBottom: 14 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#6a6a6a', marginBottom: 6 }}>
-                    <span>Thêm {formatPrice(Math.max(0, freeShippingThreshold - effectiveTotalAmount))} để được miễn phí giao hàng</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#707072', marginBottom: 6 }}>
+                    <span>
+                      Mua thêm {formatPrice(Math.max(0, freeShippingThreshold - effectiveTotalAmount))} để được <strong>Miễn phí vận chuyển (Freeship 0₫)</strong>
+                    </span>
                   </div>
                   <div style={styles.progressTrack}>
                     <div style={{ ...styles.progressFill, width: `${progressPct}%` }} />
                   </div>
                 </div>
               )}
-              {shippingFee === 0 && effectiveTotalAmount > 0 && (
+              {finalShippingFee === 0 && effectiveTotalAmount > 0 && (
                 <div style={styles.freeShipBadge}>
-                  🎉 Miễn phí giao hàng cho đơn hàng của bạn!
+                  🚚 Đơn hàng đạt từ {formatPrice(freeShippingThreshold)} — Đã áp dụng Freeship 0₫ (+ dùng kèm Mã giảm giá)!
                 </div>
               )}
 
-              {/* Totals */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {/* Totals Breakdown */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 <div style={styles.totalRow}>
-                  <span>Tạm tính</span>
-                  <span>{formatPrice(effectiveTotalAmount)}</span>
+                  <span>Tạm tính tiền hàng</span>
+                  <span style={{ fontWeight: 600 }}>{formatPrice(effectiveTotalAmount)}</span>
                 </div>
+
                 <div style={styles.totalRow}>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <span>Phí vận chuyển</span>
                     {estimatedDays && (
-                      <span style={{ fontSize: 11, color: '#717171' }}>
+                      <span style={{ fontSize: 11, color: '#707072' }}>
                         Dự kiến giao: {estimatedDays} {shippingRuleMatched ? `(${shippingRuleMatched})` : ''}
                       </span>
                     )}
                   </div>
-                  <span style={{ color: shippingFee === 0 ? '#00a699' : '#222', fontWeight: 600 }}>
-                    {shippingFee === 0 ? 'Miễn phí' : formatPrice(shippingFee)}
+                  <span style={{ color: shippingFee === 0 ? '#0f766e' : '#111111', fontWeight: 700 }}>
+                    {shippingFee === 0 ? 'Miễn phí (0₫)' : formatPrice(shippingFee)}
                   </span>
                 </div>
+
+                {productDiscountAmount > 0 && (
+                  <div style={{ ...styles.totalRow, color: 'var(--nike-sale, #d30005)', fontWeight: 700 }}>
+                    <span>🏷️ Mã giảm giá ({selectedDiscountCode})</span>
+                    <span>−{formatPrice(productDiscountAmount)}</span>
+                  </div>
+                )}
+
                 <div style={styles.divider} />
-                <div style={{ ...styles.totalRow, fontSize: 18, fontWeight: 700 }}>
-                  <span>Tổng cộng</span>
-                  <span style={{ color: '#ff385c' }}>{formatPrice(finalAmount)}</span>
+
+                <div style={{ ...styles.totalRow, fontSize: 18, fontWeight: 900, color: '#111111' }}>
+                  <span>Tổng thanh toán</span>
+                  <span style={{ color: 'var(--nike-sale, #d30005)' }}>{formatPrice(finalAmount)}</span>
                 </div>
+
+                {productDiscountAmount > 0 && (
+                  <div style={{ textAlign: 'right', fontSize: 12, fontWeight: 700, color: '#0f766e' }}>
+                    Tiết kiệm được {formatPrice(productDiscountAmount)}
+                  </div>
+                )}
               </div>
 
-              {/* ── Desktop Submit ── */}
+              {/* ── Submit Button ── */}
               <button
                 form="__checkout_form__"
                 type="submit"
                 disabled={submitting || effectiveItems.length === 0}
                 onClick={handleSubmit}
+                className="btn-pill-primary"
                 style={{
                   ...styles.submitBtn,
                   marginTop: 20,
@@ -650,11 +958,11 @@ export const CheckoutPage: React.FC = () => {
                     <span style={styles.btnSpinner} /> Đang xử lý…
                   </>
                 ) : (
-                  `Đặt hàng ngay`
+                  `Đặt hàng ngay — ${formatPrice(finalAmount)}`
                 )}
               </button>
 
-              <p style={{ textAlign: 'center', fontSize: 12, color: '#6a6a6a', marginTop: 10, lineHeight: 1.5 }}>
+              <p style={{ textAlign: 'center', fontSize: 12, color: '#707072', marginTop: 10, lineHeight: 1.5 }}>
                 🔒 Thông tin của bạn được bảo mật tuyệt đối bởi ShopVibe
               </p>
             </div>
@@ -667,13 +975,13 @@ export const CheckoutPage: React.FC = () => {
   );
 };
 
-// ─── Styles (Airbnb Design System) ───────────────────────────────────────────
+// ─── Styles (Nike & Apple Luxury Design System) ──────────────────────────────
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    backgroundColor: '#f7f7f7',
+    backgroundColor: 'var(--nike-soft-cloud, #f5f5f7)',
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
-    color: '#222222',
+    color: 'var(--nike-black, #111111)',
     display: 'flex',
     flexDirection: 'column',
   },
@@ -692,28 +1000,28 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 24,
   },
   backBtn: {
-    background: 'none',
-    border: '1px solid #dddddd',
-    borderRadius: 8,
-    width: 36,
-    height: 36,
+    background: '#ffffff',
+    border: '1px solid var(--nike-hairline, #e5e5e5)',
+    borderRadius: '50%',
+    width: 38,
+    height: 38,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    color: '#222',
+    color: '#111111',
     flexShrink: 0,
-    transition: 'background 150ms ease-out',
   },
   pageTitle: {
     fontSize: 26,
-    fontWeight: 700,
-    color: '#222222',
+    fontWeight: 900,
+    letterSpacing: '-0.02em',
+    color: '#111111',
     margin: 0,
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: '1fr 400px',
+    gridTemplateColumns: '1fr 420px',
     gap: 24,
     alignItems: 'start',
   },
@@ -728,15 +1036,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   card: {
     background: '#ffffff',
-    border: '1px solid #ebebeb',
-    borderRadius: 14,
+    border: '1px solid var(--nike-hairline, #e5e5e5)',
+    borderRadius: 16,
     padding: '24px',
-    boxShadow: 'none',
   },
   sectionTitle: {
     fontSize: 17,
-    fontWeight: 700,
-    color: '#222222',
+    fontWeight: 800,
+    color: '#111111',
     margin: '0 0 18px',
     display: 'flex',
     alignItems: 'center',
@@ -751,42 +1058,40 @@ const styles: Record<string, React.CSSProperties> = {
   fieldLabel: {
     display: 'block',
     fontSize: 13.5,
-    fontWeight: 600,
-    color: '#222222',
+    fontWeight: 700,
+    color: '#111111',
     marginBottom: 6,
   },
   requiredMark: {
-    color: '#ff385c',
+    color: 'var(--nike-sale, #d30005)',
     marginLeft: 2,
   },
   optionalMark: {
     fontSize: 12,
     fontWeight: 400,
-    color: '#6a6a6a',
+    color: '#707072',
     marginLeft: 4,
   },
   input: {
     width: '100%',
-    height: 48,
+    height: 46,
     padding: '0 14px',
     background: '#ffffff',
-    border: '1px solid #dddddd',
-    borderRadius: 8,
-    fontSize: 14.5,
-    color: '#222222',
+    border: '1px solid var(--nike-hairline, #e5e5e5)',
+    borderRadius: 10,
+    fontSize: 14,
+    color: '#111111',
     outline: 'none',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
-    transition: 'border-color 150ms ease-in-out, box-shadow 150ms ease-in-out',
   },
   inputError: {
-    borderColor: '#c13515 !important',
+    borderColor: '#d30005',
   },
   errorMsg: {
     margin: '4px 0 0',
-    fontSize: 13,
-    color: '#c13515',
-    lineHeight: 1.38,
+    fontSize: 12.5,
+    color: '#d30005',
   },
   checkboxRow: {
     display: 'flex',
@@ -798,96 +1103,47 @@ const styles: Record<string, React.CSSProperties> = {
   checkbox: {
     width: 18,
     height: 18,
-    accentColor: '#ff385c',
+    accentColor: '#111111',
     cursor: 'pointer',
-    flexShrink: 0,
   },
   paymentOption: {
     display: 'flex',
     alignItems: 'center',
     gap: 14,
     padding: '14px 16px',
-    border: '1.5px solid #dddddd',
-    borderRadius: 10,
+    border: '1px solid var(--nike-hairline, #e5e5e5)',
+    borderRadius: 12,
     cursor: 'pointer',
-    transition: 'border 150ms ease-out, background 150ms ease-out',
-    background: '#fff',
+    background: '#ffffff',
+    transition: 'all 150ms ease',
   },
   paymentOptionActive: {
-    borderColor: '#ff385c',
-    background: '#fff5f7',
+    borderColor: '#111111',
+    borderWidth: 2,
+    background: '#fafafa',
   },
   paymentIcon: {
-    fontSize: 22,
+    fontSize: 24,
     flexShrink: 0,
   },
   radioCircle: {
     width: 20,
     height: 20,
     borderRadius: '50%',
-    border: '2px solid #dddddd',
+    border: '2px solid #cccccc',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-    transition: 'border 150ms',
   },
   radioCircleActive: {
-    borderColor: '#ff385c',
+    borderColor: '#111111',
   },
   radioDot: {
     width: 10,
     height: 10,
     borderRadius: '50%',
-    background: '#ff385c',
-  },
-  apiError: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    padding: '12px 16px',
-    background: '#fff5f4',
-    border: '1px solid #fecdc8',
-    borderRadius: 10,
-    fontSize: 14,
-    color: '#c13515',
-    lineHeight: 1.5,
-  },
-  submitBtn: {
-    width: '100%',
-    height: 52,
-    background: '#ff385c',
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 600,
-    border: 'none',
-    borderRadius: 8,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
-    transition: 'background 150ms ease-out, transform 150ms ease-out, opacity 150ms',
-    fontFamily: 'inherit',
-  },
-  submitBtnLoading: {
-    opacity: 0.75,
-    cursor: 'not-allowed',
-  },
-  btnSpinner: {
-    display: 'inline-block',
-    width: 18,
-    height: 18,
-    border: '2px solid rgba(255,255,255,0.35)',
-    borderTopColor: '#fff',
-    borderRadius: '50%',
-    animation: 'spin 600ms linear infinite',
-  },
-  divider: {
-    height: 1,
-    background: '#ebebeb',
-    margin: '14px 0',
+    background: '#111111',
   },
   itemRow: {
     display: 'flex',
@@ -899,22 +1155,21 @@ const styles: Record<string, React.CSSProperties> = {
     flexShrink: 0,
   },
   itemImg: {
-    width: 60,
-    height: 60,
+    width: 56,
+    height: 70,
     objectFit: 'cover',
     borderRadius: 8,
-    border: '1px solid #ebebeb',
+    border: '1px solid var(--nike-hairline, #e5e5e5)',
   },
   itemImgFallback: {
-    width: 60,
-    height: 60,
+    width: 56,
+    height: 70,
     borderRadius: 8,
-    background: '#f7f7f7',
+    background: '#f5f5f7',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: 24,
-    border: '1px solid #ebebeb',
+    fontSize: 22,
   },
   qtyBadge: {
     position: 'absolute',
@@ -922,8 +1177,8 @@ const styles: Record<string, React.CSSProperties> = {
     right: -6,
     width: 20,
     height: 20,
-    background: '#222222',
-    color: '#fff',
+    background: '#111111',
+    color: '#ffffff',
     borderRadius: '50%',
     fontSize: 11,
     fontWeight: 700,
@@ -933,53 +1188,96 @@ const styles: Record<string, React.CSSProperties> = {
   },
   itemName: {
     margin: 0,
-    fontSize: 14,
-    fontWeight: 500,
-    color: '#222',
+    fontSize: 13.5,
+    fontWeight: 700,
+    color: '#111111',
     lineHeight: 1.4,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
   },
   itemVariant: {
     margin: '3px 0 0',
     fontSize: 12,
-    color: '#6a6a6a',
+    color: '#707072',
   },
   itemPrice: {
     margin: 0,
     fontSize: 14,
-    fontWeight: 600,
-    color: '#222',
+    fontWeight: 800,
+    color: '#111111',
     flexShrink: 0,
   },
-  totalRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: 15,
-    color: '#3f3f3f',
+  divider: {
+    height: 1,
+    background: 'var(--nike-hairline, #e5e5e5)',
+    margin: '16px 0',
   },
   progressTrack: {
-    height: 4,
-    background: '#ebebeb',
-    borderRadius: 2,
+    height: 6,
+    background: '#e5e5e5',
+    borderRadius: 9999,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    background: '#ff385c',
-    borderRadius: 2,
-    transition: 'width 600ms ease-in-out',
+    background: '#111111',
+    borderRadius: 9999,
+    transition: 'width 300ms ease',
   },
   freeShipBadge: {
-    padding: '10px 14px',
-    background: '#f0fdf4',
-    border: '1px solid #bbf7d0',
-    borderRadius: 8,
-    fontSize: 13,
-    color: '#15803d',
-    fontWeight: 500,
+    background: '#f0fdfa',
+    border: '1px solid #99f6e4',
+    color: '#0f766e',
+    borderRadius: 10,
+    padding: '8px 12px',
+    fontSize: 12.5,
+    fontWeight: 700,
     marginBottom: 14,
+    textAlign: 'center',
+  },
+  totalRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    fontSize: 14,
+    color: '#222222',
+  },
+  submitBtn: {
+    width: '100%',
+    height: 52,
+    background: '#111111',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: 9999,
+    fontSize: 15,
+    fontWeight: 800,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  submitBtnLoading: {
+    opacity: 0.75,
+    cursor: 'not-allowed',
+  },
+  btnSpinner: {
+    width: 16,
+    height: 16,
+    border: '2.5px solid rgba(255,255,255,0.4)',
+    borderTopColor: '#ffffff',
+    borderRadius: '50%',
+    display: 'inline-block',
+    animation: 'spin 600ms linear infinite',
+  },
+  apiError: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '12px 16px',
+    background: '#fff8f6',
+    border: '1px solid #d30005',
+    borderRadius: 10,
+    fontSize: 13.5,
+    color: '#d30005',
   },
   loadingWrap: {
     minHeight: '100vh',
@@ -991,27 +1289,9 @@ const styles: Record<string, React.CSSProperties> = {
   spinner: {
     width: 36,
     height: 36,
-    border: '3px solid #ebebeb',
-    borderTopColor: '#ff385c',
+    border: '3px solid #e5e5e5',
+    borderTopColor: '#111111',
     borderRadius: '50%',
     animation: 'spin 600ms linear infinite',
   },
 };
-
-// Inject keyframes (chỉ 1 lần)
-if (typeof document !== 'undefined' && !document.getElementById('__checkout_spin__')) {
-  const style = document.createElement('style');
-  style.id = '__checkout_spin__';
-  style.textContent = `
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #recipientName:focus, #recipientPhone:focus, #shippingAddress:focus, #note:focus {
-      border-color: #222222 !important;
-      box-shadow: 0 0 0 1px #222222;
-    }
-    @media (max-width: 768px) {
-      .checkout-grid { grid-template-columns: 1fr !important; }
-      .checkout-summary-col { position: static !important; }
-    }
-  `;
-  document.head.appendChild(style);
-}

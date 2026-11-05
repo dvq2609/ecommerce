@@ -11,6 +11,8 @@ export interface CreateOrderRequest {
   shippingAddress: string;
   note?: string;
   paymentMethod: PaymentMethod;
+  shippingVoucherCode?: string | null;
+  discountVoucherCode?: string | null;
   items?: OrderItemRequest[] | null; // null = Cart Checkout; filled = Buy Now
   saveToProfile?: boolean;
 }
@@ -48,6 +50,9 @@ export interface OrderResponse {
   totalAmount: number;
   shippingFee: number;
   discountAmount: number;
+  shippingDiscountAmount?: number;
+  discountVoucherCode?: string | null;
+  shippingVoucherCode?: string | null;
   finalAmount: number;
   paymentMethod: PaymentMethod;
   paymentMethodName: string;

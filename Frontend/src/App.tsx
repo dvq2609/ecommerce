@@ -11,6 +11,7 @@ import { ColorsManagePage } from './pages/ColorsManagePage';
 import { SizesManagePage } from './pages/SizesManagePage';
 import { AdminShippingPage } from './pages/AdminShippingPage';
 import { AdminOrdersPage } from './pages/AdminOrdersPage';
+import { AdminVoucherPage } from './pages/AdminVoucherPage';
 import { SellerReviewsPage } from './pages/SellerReviewsPage';
 import { SellerAnalyticsPage } from './pages/SellerAnalyticsPage';
 import { SellerInventoryPage } from './pages/SellerInventoryPage';
@@ -44,7 +45,7 @@ export const App: React.FC = () => {
         <Route path="/product/:id" element={<ProductDetailPage />} />
         <Route path="/product" element={<ProductDetailPage />} />
 
-        {/* ADMIN ROUTES (Admin Only: System Standard Size Guide & Shipping Rules) */}
+        {/* ADMIN ROUTES (Admin Only: System Standard Size Guide, Shipping Rules & Vouchers) */}
         <Route
           path="/admin/sizes"
           element={
@@ -58,6 +59,14 @@ export const App: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminShippingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/vouchers"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminVoucherPage />
             </ProtectedRoute>
           }
         />

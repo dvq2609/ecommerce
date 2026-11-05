@@ -166,7 +166,7 @@ class ChatSignalRClient {
     }
 
     if (!this.connection) {
-      const hubUrl = 'http://localhost:5216/hubs/chat';
+      const hubUrl = '/hubs/chat';
 
       this.connection = new signalR.HubConnectionBuilder()
         .withUrl(hubUrl, {

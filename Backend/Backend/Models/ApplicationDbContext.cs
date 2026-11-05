@@ -34,6 +34,8 @@ namespace Backend.Models
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
         public DbSet<ChatConversation> ChatConversations { get; set; } = null!;
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
+        public DbSet<Voucher> Vouchers { get; set; } = null!;
+        public DbSet<VoucherUsage> VoucherUsages { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -150,6 +152,18 @@ namespace Backend.Models
                 .HasOne(o => o.User)
                 .WithMany()
                 .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.DiscountVoucher)
+                .WithMany()
+                .HasForeignKey(o => o.DiscountVoucherId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.ShippingVoucher)
+                .WithMany()
+                .HasForeignKey(o => o.ShippingVoucherId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Order>()
@@ -273,6 +287,25 @@ namespace Backend.Models
                 .WithMany()
                 .HasForeignKey(m => m.AttachedProductId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Voucher & VoucherUsage Configuration
+            modelBuilder.Entity<VoucherUsage>()
+                .HasOne(vu => vu.Voucher)
+                .WithMany(v => v.VoucherUsages)
+                .HasForeignKey(vu => vu.VoucherId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<VoucherUsage>()
+                .HasOne(vu => vu.User)
+                .WithMany()
+                .HasForeignKey(vu => vu.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<VoucherUsage>()
+                .HasOne(vu => vu.Order)
+                .WithMany(o => o.VoucherUsages)
+                .HasForeignKey(vu => vu.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

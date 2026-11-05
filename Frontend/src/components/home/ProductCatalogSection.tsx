@@ -43,6 +43,7 @@ export const ProductCatalogSection: React.FC<ProductCatalogSectionProps> = ({
 
   const sortedList = getSortedProducts();
   const currentProducts = sortedList.slice(0, displayCount);
+  const desktopCols = currentProducts.length === 3 ? 3 : currentProducts.length >= 4 ? 4 : 3;
 
   return (
     <div
@@ -51,22 +52,22 @@ export const ProductCatalogSection: React.FC<ProductCatalogSectionProps> = ({
         maxWidth: '1280px',
         margin: '0 auto',
         width: '100%',
-        padding: '24px 20px 48px 20px',
+        padding: '16px 20px 48px 20px',
       }}
     >
       {/* Section Header & Minimalist Pill Tabs */}
       <div
         style={{
           display: 'flex',
-          flexWrap: 'wrap',
           alignItems: 'flex-end',
           justifyContent: 'space-between',
+          flexWrap: 'wrap',
           gap: '16px',
-          marginBottom: '24px',
+          marginBottom: '20px',
         }}
       >
         <div>
-          <div className="font-kicker" style={{ marginBottom: '4px' }}>
+          <div className="font-kicker" style={{ marginBottom: '8px' }}>
             DANH MỤC THỜI TRANG CHÍNH HÃNG
           </div>
           <h2
@@ -189,7 +190,7 @@ export const ProductCatalogSection: React.FC<ProductCatalogSectionProps> = ({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+            gridTemplateColumns: `repeat(${desktopCols}, minmax(0, 1fr))`,
             gap: '20px',
           }}
           className="catalog-grid-responsive"

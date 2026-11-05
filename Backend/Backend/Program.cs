@@ -86,8 +86,9 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<Backend.Services.NotificationService.INotificationService, Backend.Services.NotificationService.NotificationService>();
 builder.Services.AddScoped<Backend.Services.ReviewService.IReviewService, Backend.Services.ReviewService.ReviewService>();
 
-// Seller Analytics Management
+// Seller & Admin Analytics Management
 builder.Services.AddScoped<Backend.Services.AnalyticsService.ISellerAnalyticsService, Backend.Services.AnalyticsService.SellerAnalyticsService>();
+builder.Services.AddScoped<Backend.Services.AnalyticsService.IAdminAnalyticsService, Backend.Services.AnalyticsService.AdminAnalyticsService>();
 
 // Seller Inventory Management
 builder.Services.AddScoped<Backend.Services.InventoryService.ISellerInventoryService, Backend.Services.InventoryService.SellerInventoryService>();

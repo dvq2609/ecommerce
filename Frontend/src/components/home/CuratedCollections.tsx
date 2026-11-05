@@ -82,10 +82,11 @@ export const CuratedCollections: React.FC<CuratedCollectionsProps> = ({ onSelect
 
       {/* 4-Column Responsive Grid with 4:5 Aspect Ratio */}
       <div
+        className="curated-collections-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '16px',
+          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+          gap: '20px',
         }}
       >
         {COLLECTIONS.map((col) => (
@@ -188,6 +189,14 @@ export const CuratedCollections: React.FC<CuratedCollectionsProps> = ({ onSelect
           </div>
         ))}
       </div>
+      <style>{`
+        @media (max-width: 960px) {
+          .curated-collections-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 14px !important;
+          }
+        }
+      `}</style>
     </section>
   );
 };

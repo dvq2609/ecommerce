@@ -14,31 +14,31 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
   return (
     <div
       style={{
-        maxWidth: '1200px',
+        maxWidth: '1280px',
         margin: '0 auto',
         width: '100%',
-        padding: '4px 16px 12px 16px',
+        padding: '4px 20px 12px 20px',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         {/* Search Input Box */}
         <div
           style={{
             flex: 1,
             height: '48px',
-            backgroundColor: 'var(--color-surface-card)',
-            borderRadius: 'var(--radius-full)',
-            padding: '0 16px',
+            backgroundColor: '#ffffff',
+            borderRadius: '9999px',
+            padding: '0 18px',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            boxShadow: 'var(--shadow-sm)',
-            border: '1px solid var(--color-border-subtle)',
+            gap: '10px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
+            border: '1px solid #e5e5e5',
           }}
         >
           <span
             className="material-symbols-outlined"
-            style={{ fontSize: '22px', color: 'var(--color-primary)' }}
+            style={{ fontSize: '21px', color: '#111111' }}
           >
             search
           </span>
@@ -53,8 +53,9 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
               border: 'none',
               outline: 'none',
               fontSize: '14px',
-              color: 'var(--color-on-surface)',
+              color: '#111111',
               fontFamily: 'inherit',
+              fontWeight: 500,
             }}
           />
           {value && (
@@ -62,7 +63,7 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
               type="button"
               onClick={() => onChange('')}
               style={{
-                color: 'var(--color-on-surface-variant)',
+                color: '#707072',
                 display: 'flex',
                 alignItems: 'center',
                 padding: '2px',
@@ -78,7 +79,7 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
             aria-label="Tìm kiếm bằng hình ảnh"
             onClick={() => alert('Tính năng tìm kiếm bằng hình ảnh sắp ra mắt!')}
             style={{
-              color: 'var(--color-on-surface-variant)',
+              color: '#707072',
               display: 'flex',
               alignItems: 'center',
               paddingLeft: '4px',
@@ -100,18 +101,18 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
             width: '48px',
             height: '48px',
             flexShrink: 0,
-            borderRadius: 'var(--radius-full)',
-            backgroundColor: 'var(--color-surface-card)',
-            border: '1px solid var(--color-border-subtle)',
-            boxShadow: 'var(--shadow-sm)',
+            borderRadius: '9999px',
+            backgroundColor: '#ffffff',
+            border: '1px solid #e5e5e5',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--color-on-surface)',
+            color: '#111111',
             cursor: 'pointer',
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '21px' }}>
             tune
           </span>
           <span
@@ -122,10 +123,10 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
               width: '16px',
               height: '16px',
               borderRadius: '50%',
-              backgroundColor: 'var(--color-primary)',
+              backgroundColor: '#111111',
               color: '#ffffff',
               fontSize: '9px',
-              fontWeight: 700,
+              fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

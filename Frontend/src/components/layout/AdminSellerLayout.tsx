@@ -62,6 +62,11 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
             icon: 'local_shipping',
 
           },
+          {
+            label: 'Mã giảm giá (Vouchers)',
+            path: '/admin/vouchers',
+            icon: 'confirmation_number',
+          },
         ],
       },
       {

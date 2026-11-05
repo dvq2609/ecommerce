@@ -53,6 +53,20 @@ namespace Backend.Models
 
         [Required]
         [Column(TypeName = "decimal(18,2)")]
+        public decimal ShippingDiscountAmount { get; set; } = 0;
+
+        public int? DiscountVoucherId { get; set; }
+
+        [MaxLength(50)]
+        public string? DiscountVoucherCode { get; set; }
+
+        public int? ShippingVoucherId { get; set; }
+
+        [MaxLength(50)]
+        public string? ShippingVoucherCode { get; set; }
+
+        [Required]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal FinalAmount { get; set; }
 
         [Required]
@@ -75,7 +89,10 @@ namespace Backend.Models
 
         // Navigation properties
         public virtual User User { get; set; } = null!;
+        public virtual Voucher? DiscountVoucher { get; set; }
+        public virtual Voucher? ShippingVoucher { get; set; }
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
+        public virtual ICollection<VoucherUsage> VoucherUsages { get; set; } = new List<VoucherUsage>();
     }
 }

@@ -1,4 +1,5 @@
 using Backend.Models;
+using Backend.Models.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Data
@@ -231,6 +232,79 @@ namespace Backend.Data
                     }
                 };
                 context.ShippingRules.AddRange(defaultRules);
+                await context.SaveChangesAsync();
+            }
+
+            // 6. Seed 3 Mã Giảm Giá Đơn Hàng toàn sàn (Freeship được quản lý riêng tại trang Shipping)
+            var existingFreeShipVouchers = await context.Vouchers
+                .Where(v => v.DiscountType == VoucherDiscountType.FreeShipping)
+                .ToListAsync();
+            if (existingFreeShipVouchers.Count > 0)
+            {
+                context.Vouchers.RemoveRange(existingFreeShipVouchers);
+                await context.SaveChangesAsync();
+            }
+
+            if (!await context.Vouchers.AnyAsync())
+            {
+                var now = DateTime.UtcNow;
+                var defaultVouchers = new List<Voucher>
+                {
+                    // 3 Mã Giảm Giá Đơn Hàng
+                    new()
+                    {
+                        Code = "WELCOME50",
+                        Title = "Giảm Ngay 50K Bạn Mới",
+                        Description = "Giảm trực tiếp 50.000₫ tiền hàng cho đơn hàng từ 300.000₫",
+                        DiscountType = VoucherDiscountType.FixedAmount,
+                        DiscountValue = 50000m,
+                        MaxDiscountAmount = null,
+                        MinOrderValue = 300000m,
+                        StartDate = now.AddDays(-5),
+                        EndDate = now.AddMonths(3),
+                        UsageLimit = 500,
+                        UsedCount = 85,
+                        MaxUsagePerUser = 2,
+                        IsActive = true,
+                        CreatedAt = now
+                    },
+                    new()
+                    {
+                        Code = "ATELIER15",
+                        Title = "Giảm 15% BST ShopVibe Atelier",
+                        Description = "Ưu đãi giảm 15% (tối đa 150.000₫) cho đơn hàng từ 800.000₫",
+                        DiscountType = VoucherDiscountType.Percentage,
+                        DiscountValue = 15m,
+                        MaxDiscountAmount = 150000m,
+                        MinOrderValue = 800000m,
+                        StartDate = now.AddDays(-5),
+                        EndDate = now.AddMonths(3),
+                        UsageLimit = 200,
+                        UsedCount = 34,
+                        MaxUsagePerUser = 2,
+                        IsActive = true,
+                        CreatedAt = now
+                    },
+                    new()
+                    {
+                        Code = "NIKEVIP200",
+                        Title = "Đặc Quyền VIP Giảm 200K",
+                        Description = "Giảm ngay 200.000₫ cho đơn hàng cao cấp từ 1.500.000₫",
+                        DiscountType = VoucherDiscountType.FixedAmount,
+                        DiscountValue = 200000m,
+                        MaxDiscountAmount = null,
+                        MinOrderValue = 1500000m,
+                        StartDate = now.AddDays(-5),
+                        EndDate = now.AddMonths(3),
+                        UsageLimit = 100,
+                        UsedCount = 12,
+                        MaxUsagePerUser = 1,
+                        IsActive = true,
+                        CreatedAt = now
+                    }
+                };
+
+                context.Vouchers.AddRange(defaultVouchers);
                 await context.SaveChangesAsync();
             }
         }

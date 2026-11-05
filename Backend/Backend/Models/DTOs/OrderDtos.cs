@@ -34,6 +34,18 @@ namespace Backend.Models.DTOs
         public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.COD;
 
         /// <summary>
+        /// Mã miễn/giảm phí vận chuyển (Freeship) áp dụng cho đơn hàng (Tùy chọn).
+        /// </summary>
+        [MaxLength(50)]
+        public string? ShippingVoucherCode { get; set; }
+
+        /// <summary>
+        /// Mã giảm giá tiền hàng (% hoặc tiền mặt) áp dụng cho đơn hàng (Tùy chọn).
+        /// </summary>
+        [MaxLength(50)]
+        public string? DiscountVoucherCode { get; set; }
+
+        /// <summary>
         /// Danh sách sản phẩm mua. Nếu null hoặc rỗng, hệ thống sẽ lấy toàn bộ sản phẩm trong giỏ hàng.
         /// </summary>
         public List<OrderItemRequestDto>? Items { get; set; }
@@ -71,6 +83,9 @@ namespace Backend.Models.DTOs
         public decimal TotalAmount { get; set; }
         public decimal ShippingFee { get; set; }
         public decimal DiscountAmount { get; set; }
+        public decimal ShippingDiscountAmount { get; set; }
+        public string? DiscountVoucherCode { get; set; }
+        public string? ShippingVoucherCode { get; set; }
         public decimal FinalAmount { get; set; }
 
         public PaymentMethod PaymentMethod { get; set; }

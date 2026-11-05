@@ -9,6 +9,7 @@ using Backend.Repositories.OrderRepo;
 using Backend.Repositories.ShippingRepo;
 using Backend.Repositories.AddressRepo;
 using Backend.Repositories.PaymentRepo;
+using Backend.Repositories.VoucherRepo;
 using Backend.Services.EmailService;
 using Backend.Services.TokenService;
 using Backend.Services.UserService;
@@ -20,6 +21,7 @@ using Backend.Services.OrderService;
 using Backend.Services.ShippingService;
 using Backend.Services.AddressService;
 using Backend.Services.PaymentService;
+using Backend.Services.VoucherService;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -67,6 +69,10 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 // Shipping Management
 builder.Services.AddScoped<IShippingRepository, ShippingRepository>();
 builder.Services.AddScoped<IShippingService, ShippingService>();
+
+// Voucher & Promotion Management
+builder.Services.AddScoped<IVoucherRepository, VoucherRepository>();
+builder.Services.AddScoped<IVoucherService, VoucherService>();
 
 // Address Management
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();

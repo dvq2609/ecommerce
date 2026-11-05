@@ -27,7 +27,7 @@ class SignalRService {
       return;
     }
 
-    const hubUrl = 'http://localhost:5216/hubs/notification';
+    const hubUrl = '/hubs/notification';
 
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {

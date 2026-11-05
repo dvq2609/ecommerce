@@ -5,7 +5,9 @@ using Backend.Repositories.CartRepo;
 using Backend.Repositories.OrderRepo;
 using Backend.Repositories.ProductRepo;
 using Backend.Repositories.UserRepo;
+using Backend.Repositories.VoucherRepo;
 using Backend.Services.ShippingService;
+using Backend.Services.VoucherService;
 
 namespace Backend.Services.OrderService
 {
@@ -16,6 +18,7 @@ namespace Backend.Services.OrderService
         private readonly IProductRepository _productRepository;
         private readonly IUserRepository _userRepository;
         private readonly IShippingService _shippingService;
+        private readonly IVoucherRepository _voucherRepository;
         private readonly ILogger<OrderService> _logger;
 
         public OrderService(
@@ -24,6 +27,7 @@ namespace Backend.Services.OrderService
             IProductRepository productRepository,
             IUserRepository userRepository,
             IShippingService shippingService,
+            IVoucherRepository voucherRepository,
             ILogger<OrderService> logger)
         {
             _orderRepository = orderRepository;
@@ -31,11 +35,12 @@ namespace Backend.Services.OrderService
             _productRepository = productRepository;
             _userRepository = userRepository;
             _shippingService = shippingService;
+            _voucherRepository = voucherRepository;
             _logger = logger;
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // CREATE ORDER (Transactional: validate stock → create order → deduct stock → clean cart)
+        // CREATE ORDER (Transactional: validate stock → validate 2 vouchers → create order → deduct stock → clean cart)
         // ─────────────────────────────────────────────────────────────────────
         public async Task<OrderResponseDto> CreateOrderAsync(int userId, CreateOrderRequestDto request, string? idempotencyKey = null)
         {
@@ -141,12 +146,68 @@ namespace Backend.Services.OrderService
                 // 3. Tính phí ship động theo quy tắc và ngưỡng Freeship
                 var shippingCalc = await _shippingService.CalculateShippingFeeAsync(request.ShippingAddress, totalAmount);
                 var shippingFee = shippingCalc.ShippingFee;
-                var finalAmount = totalAmount + shippingFee;
 
-                // 4. Sinh mã đơn hàng duy nhất: ORD-YYMMDD-XXXX
+                // 4. Kiểm tra và áp dụng đồng thời 2 mã: 1 Mã Freeship + 1 Mã Giảm Giá Đơn Hàng
+                Voucher? appliedShippingVoucher = null;
+                decimal shippingDiscountAmount = 0m;
+
+                if (!string.IsNullOrWhiteSpace(request.ShippingVoucherCode))
+                {
+                    var shipCode = request.ShippingVoucherCode.Trim().ToUpperInvariant();
+                    appliedShippingVoucher = await _voucherRepository.GetByCodeAsync(shipCode);
+                    if (appliedShippingVoucher == null)
+                    {
+                        throw new InvalidOperationException($"Mã Freeship '{shipCode}' không tồn tại.");
+                    }
+                    if (appliedShippingVoucher.DiscountType != VoucherDiscountType.FreeShipping)
+                    {
+                        throw new InvalidOperationException($"Mã '{shipCode}' không phải là mã miễn phí vận chuyển.");
+                    }
+
+                    var userUsed = await _voucherRepository.GetUserUsageCountAsync(appliedShippingVoucher.VoucherId, userId);
+                    var eval = VoucherService.VoucherService.EvaluateVoucherForBuyer(appliedShippingVoucher, userUsed, totalAmount, shippingFee);
+                    if (!eval.IsEligible)
+                    {
+                        throw new InvalidOperationException($"Không thể áp dụng mã Freeship '{shipCode}': {eval.IneligibleReason}");
+                    }
+
+                    shippingDiscountAmount = eval.CalculatedDiscount;
+                }
+
+                Voucher? appliedDiscountVoucher = null;
+                decimal productDiscountAmount = 0m;
+
+                if (!string.IsNullOrWhiteSpace(request.DiscountVoucherCode))
+                {
+                    var discCode = request.DiscountVoucherCode.Trim().ToUpperInvariant();
+                    appliedDiscountVoucher = await _voucherRepository.GetByCodeAsync(discCode);
+                    if (appliedDiscountVoucher == null)
+                    {
+                        throw new InvalidOperationException($"Mã giảm giá '{discCode}' không tồn tại.");
+                    }
+                    if (appliedDiscountVoucher.DiscountType == VoucherDiscountType.FreeShipping)
+                    {
+                        throw new InvalidOperationException($"Mã '{discCode}' là mã vận chuyển, không phải mã giảm giá đơn hàng.");
+                    }
+
+                    var userUsed = await _voucherRepository.GetUserUsageCountAsync(appliedDiscountVoucher.VoucherId, userId);
+                    var eval = VoucherService.VoucherService.EvaluateVoucherForBuyer(appliedDiscountVoucher, userUsed, totalAmount, shippingFee);
+                    if (!eval.IsEligible)
+                    {
+                        throw new InvalidOperationException($"Không thể áp dụng mã giảm giá '{discCode}': {eval.IneligibleReason}");
+                    }
+
+                    productDiscountAmount = eval.CalculatedDiscount;
+                }
+
+                var finalShippingFee = Math.Max(0m, shippingFee - shippingDiscountAmount);
+                var finalSubtotal = Math.Max(0m, totalAmount - productDiscountAmount);
+                var finalAmount = finalSubtotal + finalShippingFee;
+
+                // 5. Sinh mã đơn hàng duy nhất: ORD-YYMMDD-XXXX
                 var orderCode = GenerateOrderCode();
 
-                // 5. Tạo đối tượng Order
+                // 6. Tạo đối tượng Order
                 var order = new Order
                 {
                     UserId = userId,
@@ -157,7 +218,12 @@ namespace Backend.Services.OrderService
                     Note = request.Note,
                     TotalAmount = totalAmount,
                     ShippingFee = shippingFee,
-                    DiscountAmount = 0m,
+                    DiscountAmount = productDiscountAmount,
+                    ShippingDiscountAmount = shippingDiscountAmount,
+                    DiscountVoucherId = appliedDiscountVoucher?.VoucherId,
+                    DiscountVoucherCode = appliedDiscountVoucher?.Code,
+                    ShippingVoucherId = appliedShippingVoucher?.VoucherId,
+                    ShippingVoucherCode = appliedShippingVoucher?.Code,
                     FinalAmount = finalAmount,
                     PaymentMethod = request.PaymentMethod,
                     PaymentStatus = PaymentStatus.Pending,
@@ -167,10 +233,43 @@ namespace Backend.Services.OrderService
                     OrderItems = orderItems
                 };
 
-                // 6. Lưu đơn hàng vào DB
+                // 7. Lưu đơn hàng vào DB
                 await _orderRepository.CreateOrderAsync(order);
 
-                // 7. Trừ tồn kho cho từng item
+                // 8. Cập nhật UsedCount & ghi nhận VoucherUsage cho từng mã đã áp dụng
+                if (appliedShippingVoucher != null && shippingDiscountAmount > 0)
+                {
+                    appliedShippingVoucher.UsedCount += 1;
+                    await _voucherRepository.UpdateAsync(appliedShippingVoucher);
+                    await _voucherRepository.AddUsageAsync(new VoucherUsage
+                    {
+                        VoucherId = appliedShippingVoucher.VoucherId,
+                        UserId = userId,
+                        OrderId = order.OrderId,
+                        DiscountApplied = shippingDiscountAmount,
+                        IsShippingVoucher = true,
+                        IsRefunded = false,
+                        UsedAt = DateTime.UtcNow
+                    });
+                }
+
+                if (appliedDiscountVoucher != null && productDiscountAmount > 0)
+                {
+                    appliedDiscountVoucher.UsedCount += 1;
+                    await _voucherRepository.UpdateAsync(appliedDiscountVoucher);
+                    await _voucherRepository.AddUsageAsync(new VoucherUsage
+                    {
+                        VoucherId = appliedDiscountVoucher.VoucherId,
+                        UserId = userId,
+                        OrderId = order.OrderId,
+                        DiscountApplied = productDiscountAmount,
+                        IsShippingVoucher = false,
+                        IsRefunded = false,
+                        UsedAt = DateTime.UtcNow
+                    });
+                }
+
+                // 9. Trừ tồn kho cho từng item
                 foreach (var item in orderItems)
                 {
                     var deducted = await _orderRepository.DeductStockAsync(item.ProductVariantId, item.ProductId, item.Quantity);
@@ -180,14 +279,14 @@ namespace Backend.Services.OrderService
                     }
                 }
 
-                // 8. Dọn sạch giỏ hàng (chỉ khi đặt từ Cart)
+                // 10. Dọn sạch giỏ hàng (chỉ khi đặt từ Cart)
                 if (request.Items == null || request.Items.Count == 0)
                 {
                     var cart = await _cartRepository.GetOrCreateByUserIdAsync(userId);
                     await _cartRepository.ClearItemsAsync(cart.CartId);
                 }
 
-                // 9. Tùy chọn lưu địa chỉ vào hồ sơ User
+                // 11. Tùy chọn lưu địa chỉ vào hồ sơ User
                 if (request.SaveToProfile)
                 {
                     try
@@ -201,16 +300,15 @@ namespace Backend.Services.OrderService
                     }
                     catch (Exception ex)
                     {
-                        // Không làm hỏng đơn hàng nếu update profile lỗi
                         _logger.LogWarning(ex, "Không thể cập nhật địa chỉ cho User {UserId}", userId);
                     }
                 }
 
-                // 10. Commit transaction
+                // 12. Commit transaction
                 await transaction.CommitAsync();
 
-                _logger.LogInformation("Đơn hàng {OrderCode} được tạo thành công cho User {UserId}. Tổng tiền: {FinalAmount:N0}₫",
-                    orderCode, userId, finalAmount);
+                _logger.LogInformation("Đơn hàng {OrderCode} được tạo thành công cho User {UserId}. Giảm SP: {Disc:N0}₫, Giảm Ship: {ShipDisc:N0}₫, Tổng thanh toán: {FinalAmount:N0}₫",
+                    orderCode, userId, productDiscountAmount, shippingDiscountAmount, finalAmount);
 
                 return MapToDto(order);
             }
@@ -253,7 +351,7 @@ namespace Backend.Services.OrderService
         }
 
         // ─────────────────────────────────────────────────────────────────────
-        // CANCEL ORDER (chỉ Pending / Confirmed)
+        // CANCEL ORDER (chỉ Pending / Confirmed) + Hoàn trả lượt dùng 2 Vouchers
         // ─────────────────────────────────────────────────────────────────────
         public async Task<OrderResponseDto> CancelOrderAsync(int userId, int orderId, string? cancelReason = null)
         {
@@ -277,6 +375,9 @@ namespace Backend.Services.OrderService
                     await _orderRepository.RestoreStockAsync(item.ProductVariantId, item.ProductId, item.Quantity);
                 }
 
+                // Hoàn lại lượt dùng cho cả Mã Freeship và Mã Giảm Giá (nếu có)
+                await _voucherRepository.RefundOrderVouchersAsync(order.OrderId);
+
                 order.OrderStatus = OrderStatus.Cancelled;
                 order.Note = string.IsNullOrWhiteSpace(cancelReason)
                     ? order.Note
@@ -286,7 +387,7 @@ namespace Backend.Services.OrderService
                 await _orderRepository.UpdateOrderAsync(order);
                 await transaction.CommitAsync();
 
-                _logger.LogInformation("Đơn hàng {OrderCode} (User {UserId}) đã bị hủy. Tồn kho đã được hoàn trả.",
+                _logger.LogInformation("Đơn hàng {OrderCode} (User {UserId}) đã bị hủy. Tồn kho và lượt dùng Voucher đã được hoàn trả.",
                     order.OrderCode, userId);
 
                 return MapToDto(order);
@@ -360,7 +461,7 @@ namespace Backend.Services.OrderService
             await using var transaction = await _orderRepository.BeginTransactionAsync();
             try
             {
-                // Nếu Admin HỦY đơn khi chưa giao -> Tự động hoàn lại tồn kho
+                // Nếu Admin HỦY đơn khi chưa giao -> Tự động hoàn lại tồn kho và lượt dùng Voucher
                 if (newStatus == OrderStatus.Cancelled &&
                     (oldStatus == OrderStatus.Pending || oldStatus == OrderStatus.Confirmed || oldStatus == OrderStatus.Processing))
                 {
@@ -373,6 +474,8 @@ namespace Backend.Services.OrderService
                                 item.ProductId, item.ProductVariantId, item.Quantity);
                         }
                     }
+
+                    await _voucherRepository.RefundOrderVouchersAsync(order.OrderId);
                 }
 
                 // Nếu đơn COD chuyển sang ĐÃ GIAO (Delivered) -> Tự động đánh dấu đã thanh toán
@@ -470,6 +573,9 @@ namespace Backend.Services.OrderService
                 TotalAmount = baseDto.TotalAmount,
                 ShippingFee = baseDto.ShippingFee,
                 DiscountAmount = baseDto.DiscountAmount,
+                ShippingDiscountAmount = baseDto.ShippingDiscountAmount,
+                DiscountVoucherCode = baseDto.DiscountVoucherCode,
+                ShippingVoucherCode = baseDto.ShippingVoucherCode,
                 FinalAmount = baseDto.FinalAmount,
                 PaymentMethod = baseDto.PaymentMethod,
                 PaymentStatus = baseDto.PaymentStatus,
@@ -498,6 +604,9 @@ namespace Backend.Services.OrderService
                 TotalAmount = order.TotalAmount,
                 ShippingFee = order.ShippingFee,
                 DiscountAmount = order.DiscountAmount,
+                ShippingDiscountAmount = order.ShippingDiscountAmount,
+                DiscountVoucherCode = order.DiscountVoucherCode,
+                ShippingVoucherCode = order.ShippingVoucherCode,
                 FinalAmount = order.FinalAmount,
                 PaymentMethod = order.PaymentMethod,
                 PaymentStatus = order.PaymentStatus,

@@ -256,14 +256,24 @@ export const OrderSuccessPage: React.FC = () => {
                   <span>{formatPrice(order.totalAmount)}</span>
                 </div>
                 <div style={S.totalRow}>
-                  <span>Phí vận chuyển</span>
+                  <span>Phí vận chuyển gốc</span>
                   <span style={{ color: order.shippingFee === 0 ? '#00a699' : '#222' }}>
                     {order.shippingFee === 0 ? 'Miễn phí' : formatPrice(order.shippingFee)}
                   </span>
                 </div>
+                {(order.shippingDiscountAmount ?? 0) > 0 && (
+                  <div style={{ ...S.totalRow, color: '#0f766e', fontWeight: 600 }}>
+                    <span>
+                      🚚 Mã Freeship{order.shippingVoucherCode ? ` (${order.shippingVoucherCode})` : ''}
+                    </span>
+                    <span>−{formatPrice(order.shippingDiscountAmount ?? 0)}</span>
+                  </div>
+                )}
                 {order.discountAmount > 0 && (
-                  <div style={{ ...S.totalRow, color: '#00a699' }}>
-                    <span>Giảm giá</span>
+                  <div style={{ ...S.totalRow, color: '#d30005', fontWeight: 600 }}>
+                    <span>
+                      🏷️ Mã giảm giá{order.discountVoucherCode ? ` (${order.discountVoucherCode})` : ''}
+                    </span>
                     <span>−{formatPrice(order.discountAmount)}</span>
                   </div>
                 )}
@@ -281,7 +291,6 @@ export const OrderSuccessPage: React.FC = () => {
             {isMoMo ? (
               <section style={S.card}>
                 {isPaid ? (
-                  /* Giao diện khi ĐÃ THANH TOÁN THÀNH CÔNG */
                   <div style={{ textAlign: 'center', padding: '16px 8px' }}>
                     <div style={S.paidCelebrationIcon}>✓</div>
                     <h2 style={{ fontSize: 18, fontWeight: 700, color: '#15803d', margin: '12px 0 6px' }}>
@@ -297,7 +306,6 @@ export const OrderSuccessPage: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  /* Giao diện khi CHỜ THANH TOÁN MOMO */
                   <div style={{ textAlign: 'center', padding: '12px 6px' }}>
                     <div style={S.momoLogoWrap}>👛</div>
                     <h2 style={{ fontSize: 18, fontWeight: 700, color: '#a21caf', margin: '10px 0 6px' }}>
@@ -384,18 +392,6 @@ const S: Record<string, React.CSSProperties> = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, fontWeight: 700, flexShrink: 0,
     boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)',
   },
-  simToast: {
-    display: 'flex', alignItems: 'center', gap: 10, background: '#f0fdf4', border: '1px solid #bbf7d0',
-    color: '#166534', padding: '12px 18px', borderRadius: 10, marginBottom: 16, fontSize: 14, fontWeight: 600,
-    boxShadow: '0 2px 6px rgba(22, 101, 52, 0.08)',
-  },
-  liveBadge: {
-    display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#b45309',
-    background: '#fef3c7', padding: '4px 10px', borderRadius: 9999, border: '1px solid #fde68a',
-  },
-  liveDot: {
-    width: 7, height: 7, borderRadius: '50%', background: '#f59e0b', animation: 'spin 1.5s infinite alternate',
-  },
   paidCelebrationIcon: {
     width: 64, height: 64, borderRadius: '50%', background: '#dcfce7', color: '#15803d',
     fontSize: 32, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -404,11 +400,6 @@ const S: Record<string, React.CSSProperties> = {
   paidBadgeDetail: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc',
     border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 16px', fontSize: 14,
-  },
-  simulateBtn: {
-    width: '100%', padding: '10px 14px', background: '#f1f5f9', border: '1px dashed #94a3b8',
-    borderRadius: 8, color: '#334155', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-    transition: 'all 150ms ease',
   },
   successTitle: { margin: 0, fontSize: 22, fontWeight: 700, color: '#222' },
   successSub: { margin: '4px 0 0', fontSize: 14, color: '#6a6a6a', lineHeight: 1.5 },
@@ -439,19 +430,16 @@ const S: Record<string, React.CSSProperties> = {
     borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', transition: 'all 150ms ease',
     boxShadow: '0 2px 6px rgba(162, 28, 175, 0.25)',
   },
-  // COD
   codIcon: { fontSize: 48, textAlign: 'center' },
   codTimeline: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 20, padding: '0 10px' },
   timelineStep: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flex: 1 },
   timelineDot: { width: 28, height: 28, borderRadius: '50%', background: '#ebebeb', color: '#6a6a6a', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   timelineDotActive: { background: '#ff385c', color: '#fff' },
-  // CTAs
   btnPrimary: { display: 'block', textAlign: 'center', padding: '14px', background: '#ff385c', color: '#fff', borderRadius: 8, fontWeight: 600, fontSize: 15, textDecoration: 'none', boxShadow: '0 1px 2px rgba(0,0,0,0.08)' },
   btnSecondary: { display: 'block', textAlign: 'center', padding: '13px', background: '#fff', color: '#222', borderRadius: 8, fontWeight: 500, fontSize: 15, textDecoration: 'none', border: '1px solid #dddddd' },
   linkBtn: { padding: '12px 24px', background: '#ff385c', color: '#fff', borderRadius: 8, fontWeight: 600, textDecoration: 'none' },
 };
 
-// Spin keyframes
 if (typeof document !== 'undefined' && !document.getElementById('__success_spin__')) {
   const s = document.createElement('style');
   s.id = '__success_spin__';

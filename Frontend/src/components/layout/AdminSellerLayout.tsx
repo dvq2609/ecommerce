@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import { NotificationBell } from '../notification/NotificationBell';
@@ -23,6 +23,18 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
   // State điều khiển đóng/mở Sidebar (thu gọn desktop & drawer mobile)
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-admin-user-dropdown]')) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     authService.logout();
@@ -50,6 +62,11 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
       {
         group: 'Đơn hàng & Giao vận',
         items: [
+          {
+            label: 'Tổng quan toàn sàn',
+            path: '/admin/dashboard',
+            icon: 'monitoring',
+          },
           {
             label: 'Quản lý Đơn hàng',
             path: '/admin/orders',
@@ -89,6 +106,11 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
             label: 'Báo cáo doanh thu',
             path: '/seller/analytics',
             icon: 'query_stats',
+          },
+          {
+            label: 'Tổng quan toàn sàn',
+            path: '/admin/dashboard',
+            icon: 'monitoring',
           },
           {
             label: 'Quản lý Đơn hàng',
@@ -618,60 +640,121 @@ export const AdminSellerLayout: React.FC<AdminSellerLayoutProps> = ({
               }
             />
 
-            {/* User Pill / Role Pill giống Homepage */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '4px 10px 4px 4px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-surface-container-low)',
-                border: '1px solid var(--color-border-subtle)',
-              }}
-            >
-              <div
+            {/* User Pill / Role Pill có Dropdown giống Homepage */}
+            <div style={{ position: 'relative' }} data-admin-user-dropdown>
+              <button
+                type="button"
+                onClick={() => setShowUserMenu(!showUserMenu)}
                 style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  backgroundColor: 'var(--color-primary)',
-                  color: '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 700,
-                  fontSize: '13px',
+                  gap: '8px',
+                  padding: '4px 10px 4px 4px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--color-surface-container-low)',
+                  border: '1px solid var(--color-border-subtle)',
+                  cursor: 'pointer',
                 }}
               >
-                {currentUser?.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'U'}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-                <span
+                <div
                   style={{
-                    fontSize: '12.5px',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--color-primary)',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     fontWeight: 700,
-                    color: 'var(--color-on-surface)',
-                    maxWidth: '110px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
+                    fontSize: '13px',
                   }}
                 >
-                  {currentUser?.fullName?.split(' ').pop() || 'User'}
+                  {currentUser?.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2, textAlign: 'left' }}>
+                  <span
+                    style={{
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      color: 'var(--color-on-surface)',
+                      maxWidth: '110px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {currentUser?.fullName?.split(' ').pop() || 'User'}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      color: 'var(--color-primary)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    {isAdmin ? 'Admin Portal' : 'Seller Store'}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#707072' }}>
+                  expand_more
                 </span>
-                <span
+              </button>
+
+              {showUserMenu && (
+                <div
                   style={{
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    color: 'var(--color-primary)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
+                    position: 'absolute',
+                    top: '48px',
+                    right: 0,
+                    width: '240px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: '16px',
+                    boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12)',
+                    padding: '8px',
+                    zIndex: 60,
+                    border: '1px solid #e5e5e5',
                   }}
                 >
-                  {isAdmin ? 'Admin Portal' : 'Seller Store'}
-                </span>
-              </div>
+                  <div style={{ padding: '10px 12px', borderBottom: '1px solid #f0f0f2', marginBottom: '4px' }}>
+                    <div style={{ fontWeight: 700, color: '#111111', fontSize: '13.5px' }}>
+                      {currentUser?.fullName}
+                    </div>
+                    <div style={{ color: '#707072', fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>
+                      {currentUser?.email}
+                    </div>
+                    <span className="tag-pill-neutral" style={{ marginTop: '6px', fontSize: '10.5px', padding: '2px 8px', fontWeight: 700, display: 'inline-block' }}>
+                      {isAdmin ? '👑 Quản Trị Viên' : '🏪 Người Bán Hàng'}
+                    </span>
+                  </div>
+
+                  <div style={{ padding: '4px 0' }}>
+                    <Link
+                      to="/"
+                      onClick={() => setShowUserMenu(false)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', fontSize: '13px', fontWeight: 600, color: '#111111', borderRadius: '8px', textDecoration: 'none' }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#111111' }}>
+                        storefront
+                      </span>
+                      <span>Về Trang Chủ Shop</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => { setShowUserMenu(false); handleLogout(); }}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', fontSize: '13px', color: '#d30005', borderRadius: '8px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 600, textAlign: 'left' }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#d30005' }}>
+                        logout
+                      </span>
+                      <span>Đăng xuất</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </header>

@@ -11,10 +11,10 @@ export const LocationBar: React.FC = () => {
   return (
     <div
       style={{
-        maxWidth: '1200px',
+        maxWidth: '1280px',
         margin: '0 auto',
         width: '100%',
-        padding: '10px 16px',
+        padding: '12px 20px 8px 20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -27,7 +27,7 @@ export const LocationBar: React.FC = () => {
           className="material-symbols-outlined"
           style={{
             fontSize: '18px',
-            color: 'var(--color-primary)',
+            color: '#111111',
             fontVariationSettings: "'FILL' 1",
           }}
         >
@@ -36,7 +36,8 @@ export const LocationBar: React.FC = () => {
         <span
           style={{
             fontSize: '13px',
-            color: 'var(--color-on-surface-variant)',
+            color: '#707072',
+            fontWeight: 500,
           }}
         >
           Giao đến:
@@ -49,8 +50,8 @@ export const LocationBar: React.FC = () => {
             alignItems: 'center',
             gap: '2px',
             fontSize: '13px',
-            fontWeight: 600,
-            color: 'var(--color-on-surface)',
+            fontWeight: 700,
+            color: '#111111',
             cursor: 'pointer',
             border: 'none',
             background: 'none',
@@ -61,7 +62,7 @@ export const LocationBar: React.FC = () => {
           <span>{CITIES_LIST[cityIndex]}</span>
           <span
             className="material-symbols-outlined"
-            style={{ fontSize: '16px', color: 'var(--color-on-surface-variant)' }}
+            style={{ fontSize: '16px', color: '#707072' }}
           >
             expand_more
           </span>
@@ -74,9 +75,10 @@ export const LocationBar: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           gap: '6px',
-          backgroundColor: 'var(--color-surface-container)',
-          padding: '4px 10px',
-          borderRadius: 'var(--radius-full)',
+          backgroundColor: '#ffffff',
+          border: '1px solid #e5e5e5',
+          padding: '5px 12px',
+          borderRadius: '9999px',
         }}
       >
         <span
@@ -84,15 +86,15 @@ export const LocationBar: React.FC = () => {
             width: '8px',
             height: '8px',
             borderRadius: '50%',
-            backgroundColor: '#10b981',
-            boxShadow: '0 0 6px rgba(16, 185, 129, 0.6)',
+            backgroundColor: '#007d48',
+            boxShadow: '0 0 6px rgba(0, 125, 72, 0.5)',
           }}
         />
         <span
           style={{
-            fontSize: '11px',
-            fontWeight: 600,
-            color: 'var(--color-on-surface)',
+            fontSize: '11.5px',
+            fontWeight: 700,
+            color: '#111111',
             whiteSpace: 'nowrap',
           }}
         >

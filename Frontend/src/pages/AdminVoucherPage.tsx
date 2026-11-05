@@ -345,7 +345,7 @@ export const AdminVoucherPage: React.FC = () => {
               borderRadius: 9999,
               border: '1px solid var(--nike-hairline, #e5e5e5)',
               fontSize: 13,
-              minWidth: 250,
+              minWidth: 290,
               outline: 'none',
             }}
           />
@@ -525,10 +525,10 @@ export const AdminVoucherPage: React.FC = () => {
                         {v.isExpired
                           ? 'Hết hạn'
                           : v.isExhausted
-                          ? 'Hết lượt'
-                          : v.isActive
-                          ? '● Đang bật'
-                          : '○ Tạm tắt'}
+                            ? 'Hết lượt'
+                            : v.isActive
+                              ? '● Đang bật'
+                              : '○ Tạm tắt'}
                       </button>
                     </td>
 

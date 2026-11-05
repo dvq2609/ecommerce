@@ -45,7 +45,6 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
     { label: 'Nam', to: '/#men', badge: null },
     { label: 'Nữ', to: '/#women', badge: null },
     { label: 'Áo Blazer', to: '/#blazer', badge: null },
-    { label: 'Flash Sale', to: '/#flash-sale', badge: '-20%' },
   ];
 
   return (
@@ -459,8 +458,8 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
                           {(currentUser.role || '').toLowerCase() === 'admin'
                             ? '👑 Quản Trị Viên'
                             : (currentUser.role || '').toLowerCase() === 'seller'
-                            ? '🏪 Người Bán Hàng'
-                            : '🛍️ Khách Hàng'}
+                              ? '🏪 Người Bán Hàng'
+                              : '🛍️ Khách Hàng'}
                         </span>
                       )}
                     </div>
@@ -555,7 +554,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
                     {(currentUser.role || '').toLowerCase() === 'admin' && (
                       <div style={{ padding: '4px 0', borderBottom: '1px solid #f0f0f2' }}>
                         <Link
-                          to="/admin/orders"
+                          to="/admin/dashboard"
                           onClick={() => setShowUserMenu(false)}
                           style={{
                             display: 'flex',
@@ -572,28 +571,9 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
                           <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#111111' }}>
                             receipt_long
                           </span>
-                          <span>Quản lý Đơn hàng sàn</span>
+                          <span>Quản lý Sàn</span>
                         </Link>
-                        <Link
-                          to="/admin/shipping"
-                          onClick={() => setShowUserMenu(false)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            padding: '8px 12px',
-                            fontSize: '13px',
-                            fontWeight: 500,
-                            color: '#39393b',
-                            borderRadius: '8px',
-                            textDecoration: 'none',
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#707072' }}>
-                            local_shipping
-                          </span>
-                          <span>Cước vận chuyển</span>
-                        </Link>
+
                       </div>
                     )}
 

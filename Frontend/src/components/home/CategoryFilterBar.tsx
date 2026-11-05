@@ -15,10 +15,10 @@ export const CategoryFilterBar: React.FC<CategoryFilterBarProps> = ({
   return (
     <div
       style={{
-        maxWidth: '1200px',
+        maxWidth: '1280px',
         margin: '0 auto',
         width: '100%',
-        padding: '6px 0',
+        padding: '12px 20px 4px 20px',
       }}
     >
       <div
@@ -26,9 +26,9 @@ export const CategoryFilterBar: React.FC<CategoryFilterBarProps> = ({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
+          gap: '10px',
           overflowX: 'auto',
-          padding: '4px 16px',
+          padding: '4px 0',
           WebkitOverflowScrolling: 'touch',
         }}
       >
@@ -43,29 +43,25 @@ export const CategoryFilterBar: React.FC<CategoryFilterBarProps> = ({
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: isActive
-                  ? 'var(--color-primary)'
-                  : 'var(--color-surface-container-low)',
-                color: isActive ? '#ffffff' : 'var(--color-on-surface)',
-                border: isActive
-                  ? '1px solid var(--color-primary)'
-                  : '1px solid var(--color-border-subtle)',
-                fontSize: '13px',
-                fontWeight: isActive ? 700 : 500,
+                gap: '8px',
+                padding: '9px 18px',
+                borderRadius: '9999px',
+                backgroundColor: isActive ? '#111111' : '#ffffff',
+                color: isActive ? '#ffffff' : '#111111',
+                border: isActive ? '1px solid #111111' : '1px solid #e5e5e5',
+                fontSize: '13.5px',
+                fontWeight: isActive ? 700 : 600,
                 flexShrink: 0,
                 cursor: 'pointer',
-                boxShadow: isActive ? '0 2px 8px rgba(186, 0, 54, 0.25)' : 'none',
+                boxShadow: isActive ? '0 4px 12px rgba(17, 17, 17, 0.14)' : 'none',
                 transition: 'all 0.2s ease',
               }}
             >
               <span
                 className="material-symbols-outlined"
                 style={{
-                  fontSize: '17px',
-                  color: isActive ? '#ffffff' : 'var(--color-primary)',
+                  fontSize: '18px',
+                  color: isActive ? '#ffffff' : '#111111',
                 }}
               >
                 {cat.icon}
@@ -75,10 +71,10 @@ export const CategoryFilterBar: React.FC<CategoryFilterBarProps> = ({
               {cat.badge && (
                 <span
                   style={{
-                    padding: '1px 6px',
-                    borderRadius: 'var(--radius-full)',
-                    backgroundColor: isActive ? '#ffffff' : 'var(--color-primary-fixed)',
-                    color: isActive ? 'var(--color-primary)' : 'var(--color-on-primary-fixed)',
+                    padding: '2px 7px',
+                    borderRadius: '9999px',
+                    backgroundColor: isActive ? '#d30005' : '#f5f5f7',
+                    color: isActive ? '#ffffff' : '#111111',
                     fontSize: '10px',
                     fontWeight: 800,
                     textTransform: 'uppercase',

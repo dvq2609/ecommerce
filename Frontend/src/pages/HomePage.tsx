@@ -10,7 +10,6 @@ import { HeroSlider } from '../components/home/HeroSlider';
 import { TrustBadgeStrip } from '../components/home/TrustBadgeStrip';
 import { VoucherStripSection } from '../components/home/VoucherStripSection';
 import { CategoryFilterBar } from '../components/home/CategoryFilterBar';
-import { FlashSaleSection } from '../components/home/FlashSaleSection';
 import { ProductCatalogSection } from '../components/home/ProductCatalogSection';
 import { BottomNavBar } from '../components/home/BottomNavBar';
 import { CuratedCollections } from '../components/home/CuratedCollections';
@@ -141,7 +140,7 @@ export const HomePage: React.FC = () => {
         <VoucherStripSection />
 
         {/* 5.5. Curated Lookbook Collections (Nike Style 4:5 Grid) */}
-        <div id="curated-collections">
+        <div id="curated-collections" style={{ width: '100%' }}>
           <CuratedCollections
             onSelectCollection={(filter) => {
               setSearchQuery(filter);
@@ -158,29 +157,7 @@ export const HomePage: React.FC = () => {
           onSelectCategory={(id) => setActiveCategoryId(id)}
         />
 
-        {/* 7. Flash Sale Section (Dữ liệu thật từ các sản phẩm đang có chiết khấu) */}
-        {catalogProducts.length > 0 && (
-          <FlashSaleSection
-            products={catalogProducts
-              .filter((p) => p.discountPercent > 0)
-              .slice(0, 4)
-              .map((p) => ({
-                id: p.id,
-                title: p.title,
-                brandTag: p.brandTag,
-                price: p.price,
-                originalPrice: p.originalPrice,
-                discountPercent: p.discountPercent,
-                soldCount: Math.min(25, p.reviewCount),
-                totalStock: 50,
-                imageUrl: p.imageUrl,
-              }))}
-            onProductClick={(p) => navigate(`/product/${p.id}`)}
-            onViewAll={() => alert('Chuyển đến trang tổng hợp Flash Sale')}
-          />
-        )}
-
-        {/* 8. Main Product Catalog Section ("Gợi ý hôm nay") */}
+        {/* 7. Main Product Catalog Section ("Gợi ý hôm nay") */}
         {loading ? (
           <div
             style={{
